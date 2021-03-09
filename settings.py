@@ -23,9 +23,9 @@ X_MAX = 200; Y_MAX = 200; Z_MAX = 175
 MAX_SPEED = 300  # In mm/sec, max speed of extruder in X/Y direction
 
 # Preview/Picture/Video Flags
-isPreviewModeOn = False
+isPreviewModeOn = True
 isVideoCaptureModeOn = False
-isPictureCaptureModeOn = True
+isPictureCaptureModeOn = False
 
 # File and Folder Names
 # TODO: Put in a settings file?
@@ -35,10 +35,10 @@ FILENAME_VIDEO_EXTENSION = ".h264"
 FILENAME_PICTURE_EXTENSION = ".jpg"
 
 # RPi Path
-# FOLDERPATH = "/home/pi/"
+FOLDERPATH = "/home/pi/"
 
 # Windows Path (Save in current directory
-FOLDERPATH = ""
+# FOLDERPATH = ""
 
 # Load GCODE Strings, or put them here temporarily
 # GCode Strings
@@ -47,8 +47,8 @@ ABSOLUTE_POS = "G90"
 RELATIVE_POS = "G91"
 
 # Which Project? Will influence which settings are loaded
-PROJECT = "mht"
-# PROJECT = "cell_sensor"
+# PROJECT = "mht"
+PROJECT = "cell_sensor"
 
 # Load YAML Settings
 with open("connection_settings.yaml") as file:

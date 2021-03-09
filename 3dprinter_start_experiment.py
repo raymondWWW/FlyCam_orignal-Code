@@ -10,6 +10,8 @@ Purpose: Opens up path list YAML file,
 # import libraries
 # camera, serial, time, yaml
 import os
+import picamera
+import serial
 import time
 import yaml
 
@@ -21,15 +23,52 @@ import settings as C
 
 # Setup camera and printer
 # Create printer/camera variables
-# camera = picamera.PiCamera()
-# camera.rotation = 90
+camera = picamera.PiCamera()
+camera.rotation = 90
 #
-# printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
+printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 
 # User Defined Functions
 
 # Define initial_setup() function for 3D printer
+def initial_setup(path_list):
+    global printer
+    FIRST_LOCATION = 0
+    X = 0
+    Y = 1
+    Z = 2
 
+    # Check if 3D printer is connected
+    if printer.isOpen():
+        print('Connected to printer')
+    
+    starting_location_x = path_list[0][X]
+    starting_location_y = path_list[FIRST_LOCATION][Y]
+    starting_location_z = path_list[FIRST_LOCATION][Z]
+    
+     
+    # Wait for Printer to Finish Rebooting
+    print('Printer is rebooting...\n')
+    print("Waiting for", C.REBOOT_WAIT_TIME, "seconds")
+    time.sleep(C.REBOOT_WAIT_TIME)
+    print("Done Waiting, Moving Extruder and Build Plate to Origin/Home\n")
+    # printer.write(b'G28\n')
+    go_home()
+    # time.sleep(C.REBOOT_WAIT_TIME)
+    time.sleep(20)
+    # start_position = C.loc_list[0]
+    start_position_z = "G0Z{}".format(starting_location_z)
+    run_gcode(start_position_z)
+    time.sleep(10)
+    start_position = "G0X{}Y{}".format(starting_location_x, starting_location_y)
+    run_gcode(start_position)
+    time.sleep(10)
+    
+
+
+# Function: Make Extruder and Build Plate Go to Origin/Home.
+def go_home():
+    run_gcode(C.HOME)
 
 # Define function, run_gcode_ that runs a GCode string
 # Function: Convert String to binary/Gcode, write to serial
@@ -46,11 +85,11 @@ def run_gcode(gcode_string):
     # Add new line character at the end of the string
     gcode_string = gcode_string + "\n"
 
-    # print(gcode_string)
+    print(gcode_string)
 
     # Convert to Binary with UTF-8 encoding for string, write to serial
-    # printer.write(bytes(gcode_string, "utf-8"))
-    # printer.write(str.encode(gcode_string))
+    printer.write(bytes(gcode_string, "utf-8"))
+    printer.write(str.encode(gcode_string))
 
     # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
     # time.sleep(5)
@@ -99,7 +138,11 @@ def start_experiment(gcode_string_list):
     #   else take picture or video (check isRecordingModeOn flag)
 
     # Create Folder (based on conditions)
-    folder_path = create_and_get_folder_path()
+    if C.isPreviewModeOn == False:
+        folder_path = create_and_get_folder_path()
+    
+    # Go into Absolute Positioning Mode
+    run_gcode(C.ABSOLUTE_POS)
 
     # Use for loop to go through each gcode string list
     well_number = 1
@@ -108,8 +151,9 @@ def start_experiment(gcode_string_list):
         run_gcode(gcode_string)
         if C.isPreviewModeOn == True:
             print("Preview Mode is On, only showing preview camera")
-            # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
-            # time.sleep(5)
+            camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+            time.sleep(5)
+            
             # camera.stop_preview()
         elif C.isVideoCaptureModeOn == True:
             print("Recording Video Footage")
@@ -121,9 +165,11 @@ def start_experiment(gcode_string_list):
             file_full_path = get_file_full_path(folder_path, well_number)
             # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
 
-            # UNCOMMENT THIS
-            # camera.capture(file_full_path)
+            camera.capture(file_full_path)
         well_number += 1
+    
+    if C.isPreviewModeOn == True:
+        camera.stop_preview()
 
 
 # Define function that creates folder for experiment if VideoCapture or PictureCapture is on
@@ -173,13 +219,38 @@ def get_file_full_path(folder_path, well_number):
 # TODO: Future feature
 
 
+# Define menu function to ask to start experiment
+def menu(gcode_string_list):
+    # Ask user if they want to start the experiment (yes/no) in a while loop
+    # if yes, run start_experiment
+    # if no, exit
+    # else, invalid input
+    
+    while True:
+        user_input = input("Start experiment (y/n)? ")
+        
+        user_input = user_input.lower()
+        
+        if user_input == "y":
+            start_experiment(gcode_string_list)
+        elif user_input == "n":
+            print("Exiting Programm...")
+            break
+        else:
+            print("Invalid Input. Please Try Again.")
+            continue
+    
+    pass
+
 # Define function, main, to run things
 def main():
-    # initial_setup()
     yaml_file = "path_list_2x3_all.yaml"
     path_list = get_path_list(yaml_file)
     gcode_string_list = convert_list_to_gcode_strings(path_list)
-    start_experiment(gcode_string_list)
+    initial_setup(path_list)
+    
+    menu(gcode_string_list)
+    # start_experiment(gcode_string_list)
     pass
 
 
