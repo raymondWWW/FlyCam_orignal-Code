@@ -3,6 +3,7 @@
 # Import libraries
 import yaml
 
+
 # Function that takes in a list, returns a similar dimension list of gcode formatted strings
 def convert_list_to_gcode_strings(location_list):
     X = 0; Y = 1; Z = 2

@@ -18,6 +18,28 @@ BAUDRATE = 115200     # 115200: for Marlin Firmware
 TIMEOUT_TIME = 1      # Wait 1 second
 REBOOT_WAIT_TIME = 5  # 5 seconds
 
+# Maximum Values
+X_MAX = 200; Y_MAX = 200; Z_MAX = 175
+MAX_SPEED = 300  # In mm/sec, max speed of extruder in X/Y direction
+
+# Preview/Picture/Video Flags
+isPreviewModeOn = False
+isVideoCaptureModeOn = False
+isPictureCaptureModeOn = True
+
+# File and Folder Names
+# TODO: Put in a settings file?
+FOLDERNAME_PREFIX = "Code"
+FILENAME_PREFIX = "well"
+FILENAME_VIDEO_EXTENSION = ".h264"
+FILENAME_PICTURE_EXTENSION = ".jpg"
+
+# RPi Path
+# FOLDERPATH = "/home/pi/"
+
+# Windows Path (Save in current directory
+FOLDERPATH = ""
+
 # Load GCODE Strings, or put them here temporarily
 # GCode Strings
 HOME = "G28"
@@ -25,8 +47,8 @@ ABSOLUTE_POS = "G90"
 RELATIVE_POS = "G91"
 
 # Which Project? Will influence which settings are loaded
-# PROJECT = "mht"
-PROJECT = "cell_sensor"
+PROJECT = "mht"
+# PROJECT = "cell_sensor"
 
 # Load YAML Settings
 with open("connection_settings.yaml") as file:
@@ -39,6 +61,11 @@ with open("connection_settings.yaml") as file:
     BAUDRATE = connection_settings_dict[PROJECT]["monoprice"]["baudrate"]
     TIMEOUT_TIME = connection_settings_dict[PROJECT]["monoprice"]["timeout_time"]
     REBOOT_WAIT_TIME = connection_settings_dict[PROJECT]["monoprice"]["reboot_wait_time"]
+    X_MAX = connection_settings_dict[PROJECT]["monoprice"]["max"]["x"]
+    Y_MAX = connection_settings_dict[PROJECT]["monoprice"]["max"]["y"]
+    Z_MAX = connection_settings_dict[PROJECT]["monoprice"]["max"]["z"]
+    MAX_SPEED = connection_settings_dict[PROJECT]["monoprice"]["max"]["speed"]
+    print("Loaded Settings for:", connection_settings_dict[PROJECT]["monoprice"]["name"])
 
 # User Defined function that can change Constants by having user load up a YAML file and choosing a different 3D printer
 # TODO: Later feature
