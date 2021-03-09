@@ -14,9 +14,9 @@ cell_sensor:
       z: 50
     # well_distance is the horizontal (x) and vertical (y) distance between the centers of each well
     # They are usually designed to be like squares, with same distances in the horizontal and vertical
-    well_distance:
-      x: 38
-      y: 38
+    # Format:
+    #  well_distance: (38, 38)
+    well_distance: (38, 38)
     # location_list will store the centers of all wells in absolute positioning with this format: [x, y, z]
     # The pattern will be a American style reading format (left to right)
     # The number key matches the well number (if 1 is the top-left and 6 is the bottom-right)
