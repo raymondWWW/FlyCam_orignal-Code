@@ -100,6 +100,7 @@ def run_gcode(gcode_string):
 
 # Define function to open YAML paths file, then extracts/returns paths list
 def get_path_list(yaml_file):
+    # TODO: Convert this to CSV grabber, then convert to a list.
     with open(yaml_file) as file:
         path_list = yaml.load(file, Loader=yaml.FullLoader)
         # print(path_list)
@@ -244,6 +245,7 @@ def menu(gcode_string_list):
 
 # Define function, main, to run things
 def main():
+    # TODO: Change yaml_file to csv_file
     yaml_file = "path_list_2x3_all.yaml"
     path_list = get_path_list(yaml_file)
     gcode_string_list = convert_list_to_gcode_strings(path_list)
