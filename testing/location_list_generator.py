@@ -2,6 +2,7 @@
 
 # Load Library
 import yaml
+import pandas as pd
 
 # Load YAML File
 # For now, dummy data
@@ -94,8 +95,7 @@ def get_path_list(sample_plate_specifications):
         # Reset/set temp x
         temp_x = starting_x
         #   temp_y changes each iteration here (add a well_distance_y)
-        # TODO: Test if subtraction of y works (should approach origin)
-        temp_y = starting_y + (well_distance_y * row_num)
+        temp_y = starting_y - (well_distance_y * row_num)
         #   temp_z stays the same throughout
         temp_z = starting_z
         # print("temp_x:", temp_x, "temp_y:", temp_y, "temp_z:", temp_z)
@@ -115,7 +115,22 @@ def get_path_list(sample_plate_specifications):
     return path_list
 
 # TODO: Create new function that saves to a PANDAS file instead.
+# Function: Create a path list of well locations based on sample plate specifications, then returns that list
+# Usage: Exact locations to go to (then take pic or video)
+def get_path_dataframe(sample_plate_specifications):
+    # Extract data from Sample Plate Specs, just like in the previous function
 
+    # Create Empty Dataframe
+
+    # Use for loop to go through each row
+    #   Create temp variables for x, y, z
+    #   Use for loop to go through each column
+    #     change x as needed
+    #     Create dataframe row using x, y, z
+    #     Append new dataframe to original dataframe
+
+    # return dataframe
+    pass
 
 def main():
     sample_plate_specifications = {
@@ -145,22 +160,28 @@ def main():
     # with open(filename_yaml, "w") as file:
     #     documents = yaml.dump(location_list, file)
 
+    # Old Way, the YAML Way
     # Start Path List Creation
+    # path_list = get_path_list(sample_plate_specifications)
+    # print(path_list)
+
+    # Save Path List to a YAML file
+    # number_of_rows = sample_plate_specifications["number_of_rows"]
+    # number_of_columns = sample_plate_specifications["number_of_columns"]
+    #
+    # # file name example: location_list_2x3_all.yaml
+    # filename_yaml = "path_list_{}x{}_all.yaml".format(number_of_rows, number_of_columns)
+    #
+    # # dict_file = []
+    # # TODO: Save to CSV File
+    #
+    # with open(filename_yaml, "w") as file:
+    #     documents = yaml.dump(path_list, file)
+
+    # New Way, the PANDAS/CSV way
     path_list = get_path_list(sample_plate_specifications)
     print(path_list)
 
-    # Save Path List to a YAML file
-    number_of_rows = sample_plate_specifications["number_of_rows"]
-    number_of_columns = sample_plate_specifications["number_of_columns"]
-
-    # file name example: location_list_2x3_all.yaml
-    filename_yaml = "path_list_{}x{}_all.yaml".format(number_of_rows, number_of_columns)
-
-    # dict_file = []
-    # TODO: Save to CSV File
-
-    with open(filename_yaml, "w") as file:
-        documents = yaml.dump(path_list, file)
 
 
 
