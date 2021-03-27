@@ -10,6 +10,7 @@ Purpose: Opens up path list YAML file,
 # import libraries
 # camera, serial, time, yaml
 import os
+import pandas as pd
 import picamera
 import serial
 import time
@@ -25,8 +26,8 @@ import settings as C
 # Create printer/camera variables
 camera = picamera.PiCamera()
 camera.rotation = 270
-#
-printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
+
+# printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 
 # User Defined Functions
 
@@ -102,10 +103,37 @@ def run_gcode(gcode_string):
 
 # Define function to open YAML paths file, then extracts/returns paths list
 def get_path_list(yaml_file):
+    # TODO: Convert this to CSV grabber, then convert to a list.
     with open(yaml_file) as file:
         path_list = yaml.load(file, Loader=yaml.FullLoader)
         # print(path_list)
         return path_list
+
+# Get path list from CSV file
+def get_path_list_csv(csv_filename):
+    # Setup Constants for Function
+    X = 0
+    Y = 1
+    Z = 2
+
+    # Use Pandas to open up CSV File
+    # index_col is 0, meaning no column label for index column
+    dataframe = pd.read_csv(csv_filename, index_col=0, dtype="float")
+    print(dataframe)
+
+    # Create empty path_list variable
+    path_list = []
+
+    # Use iterows to go through each row to extract x, y, and z
+    for row_index, row in dataframe.iterrows():
+        # Place x, y, z values into a temp_list
+        temp_list = [row[X], row[Y], row[Z]]
+
+        # Append temp list to path_list
+        path_list.append(temp_list)
+        # TODO: Consider converting to GCODE list here, output float list and gcode list?
+
+    return path_list
 
 
 # Function that takes in a path list (not an array or matrix), but a list of lists,
@@ -250,14 +278,26 @@ def menu(gcode_string_list):
 
 # Define function, main, to run things
 def main():
-    yaml_file = "path_list_2x3_all.yaml"
-    path_list = get_path_list(yaml_file)
-    gcode_string_list = convert_list_to_gcode_strings(path_list)
-    initial_setup(path_list)
-    
-    menu(gcode_string_list)
+    # TODO: Change yaml_file to csv_file
+    # yaml_file = "path_list_2x3_all.yaml"
+    # path_list = get_path_list(yaml_file)
+    # gcode_string_list = convert_list_to_gcode_strings(path_list)
+    # initial_setup(path_list)
+    #
+    # menu(gcode_string_list)
     # start_experiment(gcode_string_list)
-    pass
+
+    # CSV Version
+    # TODO: Change filename to have rowXcol
+    csv_filename = "testing/file2.csv"
+    path_list = get_path_list_csv(csv_filename)
+    gcode_string_list = convert_list_to_gcode_strings(path_list)
+    print(gcode_string_list)
+    # TODO: Test if code works on RPi
+    # initial_setup(path_list)
+    #
+    # menu(gcode_string_list)
+    # start_experiment(gcode_string_list)
 
 
 main()
