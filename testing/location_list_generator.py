@@ -4,6 +4,11 @@
 import yaml
 import pandas as pd
 
+# CONSTANTS
+# TODO: Move to a settings or common file
+PATH_CSV_FILE_NAME = "sample_path"
+LOCATION_CSV_FILE_NAME = ""
+
 # Load YAML File
 # For now, dummy data
 # sample_plate_specifications = {
@@ -120,17 +125,63 @@ def get_path_list(sample_plate_specifications):
 def get_path_dataframe(sample_plate_specifications):
     # Extract data from Sample Plate Specs, just like in the previous function
 
+    # Setup Function Constants
+    X = 0;
+    Y = 1;
+    Z = 2
+    column_titles_list = ["X", "Y", "Z"]
+
+
+    # print(sample_plate_specifications)
+    number_of_rows = sample_plate_specifications["number_of_rows"]
+    number_of_columns = sample_plate_specifications["number_of_columns"]
+    starting_x = sample_plate_specifications["starting_location"][X]
+    starting_y = sample_plate_specifications["starting_location"][Y]
+    starting_z = sample_plate_specifications["starting_location"][Z]
+    well_distance_x = sample_plate_specifications["well_distance"][X]
+    well_distance_y = sample_plate_specifications["well_distance"][Y]
+    number_of_wells = number_of_rows * number_of_columns
+
     # Create Empty Dataframe
+    dataframe_path = pd.DataFrame()
 
     # Use for loop to go through each row
-    #   Create temp variables for x, y, z
-    #   Use for loop to go through each column
-    #     change x as needed
-    #     Create dataframe row using x, y, z
-    #     Append new dataframe to original dataframe
+    for row_num in range(number_of_rows):
+        # Reset/set temp x
+        temp_x = starting_x
 
-    # return dataframe
-    pass
+        #   temp_y changes each iteration here (add a well_distance_y)
+        temp_y = starting_y - (well_distance_y * row_num)
+
+        #   temp_z stays the same throughout
+        temp_z = starting_z
+
+        # Uncomment to see what each row value is at the beginning
+        # print("temp_x:", temp_x, "temp_y:", temp_y, "temp_z:", temp_z)
+        # Use nested for loop to go through each column
+        for col_num in range(number_of_columns):
+            # Increase x as it goes to each column, y and z stay the same (Assumes level sample plate)
+            temp_x = starting_x + (well_distance_x * col_num)
+
+            # Uncomment to see each location.
+            # Questions to consider:
+            #  Is y going towards zero as the rows increase (meaning the bottom left is 0)?
+            #  Is z staying the same?
+            # print("temp_x:", temp_x, "temp_y:", temp_y, "temp_z:", temp_z)
+
+            # Create Dictionary with column titles, will be used for DataFrame
+            data = {column_titles_list[X]: [temp_x], column_titles_list[Y]: [temp_y], column_titles_list[Z]: [temp_z]}
+
+            # Create a single row for dataframe
+            df = pd.DataFrame(data)
+
+            # Append new row to dataframe_path variable
+            dataframe_path = dataframe_path.append(df)
+
+            # TODO: Consider creating column vectors, then creating dataframe at the end
+            #  Note: Current method recreates DataFrame over and over, may be memory intensive
+    return dataframe_path
+
 
 def main():
     sample_plate_specifications = {
@@ -179,8 +230,13 @@ def main():
     #     documents = yaml.dump(path_list, file)
 
     # New Way, the PANDAS/CSV way
-    path_list = get_path_list(sample_plate_specifications)
-    print(path_list)
+    # path_list = get_path_list(sample_plate_specifications)
+    # print(path_list)
+
+    dataframe = get_path_dataframe(sample_plate_specifications)
+    print(dataframe)
+
+    dataframe.to_csv("file2.csv")
 
 
 

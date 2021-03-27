@@ -106,6 +106,10 @@ def get_path_list(yaml_file):
         # print(path_list)
         return path_list
 
+# Get path list from CSV file
+def get_path_list_csv(csv_file):
+    pass
+
 
 # Function that takes in a path list (not an array or matrix), but a list of lists,
 # returns a similar dimension list of gcode formatted strings
