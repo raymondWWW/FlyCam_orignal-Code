@@ -47,8 +47,8 @@ ABSOLUTE_POS = "G90"
 RELATIVE_POS = "G91"
 
 # Which Project? Will influence which settings are loaded
-PROJECT = "mht"
-# PROJECT = "cell_sensor"
+# PROJECT = "mht"
+PROJECT = "cell_sensor"
 
 # Load YAML Settings
 with open("connection_settings.yaml") as file:

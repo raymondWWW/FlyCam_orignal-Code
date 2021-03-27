@@ -25,9 +25,14 @@ import settings as C
 # Setup camera and printer
 # Create printer/camera variables
 camera = picamera.PiCamera()
-camera.rotation = 270
 
-# printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
+# MHT: 270
+# camera.rotation = 270
+
+# Cell Sensor, at home, 90
+camera.rotation = 90
+
+printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 
 # User Defined Functions
 
@@ -119,7 +124,7 @@ def get_path_list_csv(csv_filename):
     # Use Pandas to open up CSV File
     # index_col is 0, meaning no column label for index column
     dataframe = pd.read_csv(csv_filename, index_col=0, dtype="float")
-    print(dataframe)
+    # print(dataframe)
 
     # Create empty path_list variable
     path_list = []
@@ -292,12 +297,12 @@ def main():
     csv_filename = "testing/file2.csv"
     path_list = get_path_list_csv(csv_filename)
     gcode_string_list = convert_list_to_gcode_strings(path_list)
-    print(gcode_string_list)
+    # print(gcode_string_list)
     # TODO: Test if code works on RPi
-    # initial_setup(path_list)
+    initial_setup(path_list)
     #
-    # menu(gcode_string_list)
-    # start_experiment(gcode_string_list)
+    menu(gcode_string_list)
+    start_experiment(gcode_string_list)
 
 
 main()
