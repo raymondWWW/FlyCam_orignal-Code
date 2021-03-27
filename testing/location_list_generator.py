@@ -22,8 +22,9 @@ LOCATION_CSV_FILE_NAME = ""
 # Generate location list
 # Given the known starting location, number of rows, number of columns, and well distance (x and y)
 # get the absolute position of all wells.
-# Usage: A Matrix representing all well locations
+# Usage: A Matrix representing all well locations in mm
 def get_location_list(sample_plate_specifications):
+    # TODO: Prepare for float, or change to float values
     X = 0; Y = 1; Z = 2
     # print(sample_plate_specifications)
     number_of_rows = sample_plate_specifications["number_of_rows"]
@@ -40,8 +41,6 @@ def get_location_list(sample_plate_specifications):
     # Format (if a 2x3):
     #   [ (x, y, z), (x, y, z), (x, y, z)
     #     (x, y, z), (x, y, z), (x, y, z) ]
-    # Or Maybe don't use tuples, use lists instead
-    # TODO: Test how YAML saves tuples, if at all
     location_list = []
 
     # for loop that goes through each row
