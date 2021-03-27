@@ -23,9 +23,9 @@ X_MAX = 200; Y_MAX = 200; Z_MAX = 175
 MAX_SPEED = 300  # In mm/sec, max speed of extruder in X/Y direction
 
 # Preview/Picture/Video Flags
-isPreviewModeOn = True
+isPreviewModeOn = False
 isVideoCaptureModeOn = False
-isPictureCaptureModeOn = False
+isPictureCaptureModeOn = True
 
 # File and Folder Names
 # TODO: Put in a settings file?
@@ -47,8 +47,8 @@ ABSOLUTE_POS = "G90"
 RELATIVE_POS = "G91"
 
 # Which Project? Will influence which settings are loaded
-# PROJECT = "mht"
-PROJECT = "cell_sensor"
+PROJECT = "mht"
+# PROJECT = "cell_sensor"
 
 # Load YAML Settings
 with open("connection_settings.yaml") as file:

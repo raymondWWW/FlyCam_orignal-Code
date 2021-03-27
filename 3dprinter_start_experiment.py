@@ -24,7 +24,7 @@ import settings as C
 # Setup camera and printer
 # Create printer/camera variables
 camera = picamera.PiCamera()
-camera.rotation = 90
+camera.rotation = 270
 #
 printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 
@@ -42,10 +42,12 @@ def initial_setup(path_list):
     if printer.isOpen():
         print('Connected to printer')
     
-    starting_location_x = path_list[0][X]
-    starting_location_y = path_list[FIRST_LOCATION][Y]
+    # starting_location_x = path_list[0][X]
+    # starting_location_y = path_list[FIRST_LOCATION][Y]
     starting_location_z = path_list[FIRST_LOCATION][Z]
     
+    starting_location_x = 0
+    starting_location_y = 200
      
     # Wait for Printer to Finish Rebooting
     print('Printer is rebooting...\n')
@@ -143,30 +145,34 @@ def start_experiment(gcode_string_list):
     
     # Go into Absolute Positioning Mode
     run_gcode(C.ABSOLUTE_POS)
-
+    
+    while True:
     # Use for loop to go through each gcode string list
-    well_number = 1
-    for gcode_string in gcode_string_list:
-        # print(gcode_string)
-        run_gcode(gcode_string)
-        if C.isPreviewModeOn == True:
-            print("Preview Mode is On, only showing preview camera")
-            camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
-            time.sleep(5)
-            
-            # camera.stop_preview()
-        elif C.isVideoCaptureModeOn == True:
-            print("Recording Video Footage")
-            file_full_path = get_file_full_path(folder_path, well_number)
-            # TODO: Change to Video Captures
-            # camera.capture(file_full_path)
-        elif C.isPictureCaptureModeOn == True:
-            print("Taking Pictures Only")
-            file_full_path = get_file_full_path(folder_path, well_number)
-            # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+        well_number = 1
+        for gcode_string in gcode_string_list:
+            # print(gcode_string)
+            run_gcode(gcode_string)
+            time.sleep(4)
+            if C.isPreviewModeOn == True:
+                print("Preview Mode is On, only showing preview camera")
+                camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+                time.sleep(5)
+                
+                # camera.stop_preview()
+            elif C.isVideoCaptureModeOn == True:
+                print("Recording Video Footage")
+                file_full_path = get_file_full_path(folder_path, well_number)
+                # TODO: Change to Video Captures
+                # camera.capture(file_full_path)
+            elif C.isPictureCaptureModeOn == True:
+                print("Taking Pictures Only")
+                file_full_path = get_file_full_path(folder_path, well_number)
+                print(file_full_path)
+                camera.capture(file_full_path)
+                # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
 
-            camera.capture(file_full_path)
-        well_number += 1
+                camera.capture(file_full_path)
+            well_number += 1
     
     if C.isPreviewModeOn == True:
         camera.stop_preview()
