@@ -93,8 +93,6 @@ def main():
         
         # TODO: Refactor code to change "frame" to "image"
         frame = frame.array
-        
-        # TODO: Find out if this frame.array step is necessary. If it is, time to refactor all code to turn "frame" into "image"
 
         if values['-THRESH-']:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)[:, :, 0]
@@ -116,11 +114,12 @@ def main():
         
         # Original
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()
-        # print("Hello")
         
-        # New
-        # imgbytes = cv2.imencode('.png', image)[1].tobytes()
+        # Update GUI Window with new image
         window['-IMAGE-'].update(data=imgbytes)
+        
+        # clear the stream in preparation for the next frame
+        # Must do this, else it won't work
         rawCapture.truncate(0)
 
     window.close()
