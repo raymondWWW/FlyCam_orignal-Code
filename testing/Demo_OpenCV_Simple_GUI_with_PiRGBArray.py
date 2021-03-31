@@ -16,12 +16,12 @@ Tasks:
 
 """
 
-# TODO: Import these 2 libraries:
-# from picamera.array import PiRGBArray
-# from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import PySimpleGUI as sg
 import cv2
 import numpy as np
+import time
 
 
 """
@@ -38,14 +38,14 @@ enhance:    applies local contrast enhancement on the luma channel to make the i
 
 def main():
     # TODO: Initialize PiCamera Settings
-    # # initialize the camera and grab a reference to the raw camera capture
-    # camera = PiCamera()
-    # camera.resolution = (640, 480)
-    # camera.framerate = 32
-    # rawCapture = PiRGBArray(camera, size=(640, 480))
+    # initialize the camera and grab a reference to the raw camera capture
+    camera = PiCamera()
+    camera.resolution = (640, 480)
+    camera.framerate = 32
+    rawCapture = PiRGBArray(camera, size=(640, 480))
     #
-    # # allow the camera to warmup
-    # time.sleep(0.1)
+    # allow the camera to warmup
+    time.sleep(0.1)
 
 
     sg.theme('LightGreen')
@@ -76,20 +76,24 @@ def main():
     cap = cv2.VideoCapture(0)
 
     # TODO: Replace while loop with this:
-    # for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
-    while True:
+    # while True:
         event, values = window.read(timeout=20)
         if event == 'Exit' or event == sg.WIN_CLOSED:
             break
 
         # Comment this
-        ret, frame = cap.read()
+        # ret, frame = cap.read()
 
         # TODO: Uncomment this:
         # grab the raw NumPy array representing the image, then initialize the timestamp
         # and occupied/unoccupied text
         # image = frame.array
+        
+        # TODO: Refactor code to change "frame" to "image"
+        frame = frame.array
+        
         # TODO: Find out if this frame.array step is necessary. If it is, time to refactor all code to turn "frame" into "image"
 
         if values['-THRESH-']:
@@ -109,9 +113,15 @@ def main():
             lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
             lab[:, :, 0] = clahe.apply(lab[:, :, 0])
             frame = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-
+        
+        # Original
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()
+        # print("Hello")
+        
+        # New
+        # imgbytes = cv2.imencode('.png', image)[1].tobytes()
         window['-IMAGE-'].update(data=imgbytes)
+        rawCapture.truncate(0)
 
     window.close()
 
