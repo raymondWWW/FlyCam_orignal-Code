@@ -16,6 +16,10 @@ Things to think about:
 """
 
 # import parse library
+from parse import search
+
+# CONSTANTS
+KEYWORD_SEARCH = "X:{:.2f}"
 
 # TODO: get_current_location_manager_m114()
 
@@ -23,6 +27,21 @@ Things to think about:
 # Define function does_location_exist_m114(serial_string)
 #   Searches serial string for "X:{}", "Y:{}", and "Z:{}"
 #      Returns True if all 3 are found, else returns False
+def does_location_exist_m114(serial_string):
+    # Intialize is_location_found as False, this will be returned
+    is_location_found = False
+
+    # TODO: Figure out how to search all 3 Coordinates, maybe a list of generic function?
+
+    # Using Parse Library, search for the X Keyword in serial_string
+    search_result = search(KEYWORD_SEARCH, serial_string)
+
+    # If None is not found, set is_location_found to True, otherwise it is false.
+    if search_result is not None:
+        is_location_found = True
+
+    # return is_location_found
+    return is_location_found
 
 
 
@@ -56,10 +75,17 @@ Things to think about:
 # Future Functions:
 # Define Manager Function that calls the above 2 functions and interacts with printer module
 
-# Define call_m114() function that runs the M114 GCODE to the printer serial
+# Define call_m114() function that runs the M114 GCODE to the printer serial connection
 
 
 def main():
+    # serial_string = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.00Y:5.00Z:102.00\nok"
+    # serial_string = "wait\nwait\nok\nX:1.23 Y:3.45 Z:5.678 E:0.0000"
+    serial_string = "blah"
+
+    is_location_found = does_location_exist_m114(serial_string)
+    print("is_location_found:", is_location_found)
+
     pass
 
 
