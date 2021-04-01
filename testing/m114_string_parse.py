@@ -13,28 +13,32 @@ from parse import *
 # https://marlinfw.org/docs/gcode/M114.html
 
 sample = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.00Y:5.00Z:102.00\nok"
-sample2 = "wait\nwait\nok\nX:0.00 Y:0.00 Z0.000 E:0.0000"
+sample2 = "wait\nwait\nok\nX:1.23 Y:3.45 Z:5.678 E:0.0000"
+sample3 = "blah"
 # sample = "echo: Position"
 # sample = sample.splitlines()
-parsed_str = sample[0].split("Count")
-dest = parsed_str[0]
+# parsed_str = sample[0].split("Count")
+# dest = parsed_str[0]
 # current = parsed_str[1]
 # temp = current.split['\n']
 # dest_parse = dest.split(":")
 
-print("sample:", sample)
+# print("sample:", sample)
 # print("parsed_str:", parsed_str)
-print("dest:", dest)
+# print("dest:", dest)
 # print("current:", current)
 # print("dest_parse:", dest_parse)
 
 # Single Search
-result = search("X:{:.2f}", sample)
+result = search("X:{:.2f}", sample2)
+print("result:", result)
 if result is not None:
-    result2 = findall("X:{x:.2f}Y:{y:.2f}Z:{z:.2f}", sample)
+    # result2 = findall("X:{x:.2f}Y:{y:.2f}Z:{z:.2f}", sample2)
+    # Spaces Matter!
+    result2 = findall("X:{x:.2f} Y:{y:.2f}", sample2)
     print("result2:", result2)
     for r in result2:
-        print(r["z"])
+        print(r)
 
 else:
     print("Search did not find anything")
@@ -83,11 +87,35 @@ Update:
 """
 
 # Findall Test
-# result = findall("R:{:.2f}", sample)
+# print("========================")
+# print("Current Sample:", sample)
+# print("========================")
+# result = findall("X:{:.2f}", sample)
 # print("result:", result)
+# copy_result = result
+# print("Length test for iterable")
+# print(len(tuple(copy_result)))
 # print("Result (loop):")
+# count = 0
 # for r in result:
-#     print(len(r))
+#     print("r:", r[0])
+#     count += 1
+# print("count:", count)
+# print("Out of loop")
+
+"""
+Findall Search Result Counter Algorithm
+
+Do a Findall
+
+Run a For Loop on Search Results with a Counter
+  In For Loop, extract contents anyway with placeholders created before For Loop
+
+If Counter is Zero, No Search Results
+If Counter is One, Use this as Current Location
+If Counter is Two or more, use first found result as Current Location (will have to figure this out)
+
+"""
 
 
 # TODO: Have condition if "None" is returned from search result
