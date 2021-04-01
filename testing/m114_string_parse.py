@@ -30,12 +30,12 @@ sample3 = "blah"
 # print("dest_parse:", dest_parse)
 
 # Single Search
-result = search("X:{:.2f}", sample2)
+result = search("X:{:.2f}", sample)
 print("result:", result)
 if result is not None:
     # result2 = findall("X:{x:.2f}Y:{y:.2f}Z:{z:.2f}", sample2)
     # Spaces Matter!
-    result2 = findall("X:{x:.2f} Y:{y:.2f}", sample2)
+    result2 = findall("X:{x:.2f}Y:{y:.2f}", sample)
     print("result2:", result2)
     for r in result2:
         print(r)
