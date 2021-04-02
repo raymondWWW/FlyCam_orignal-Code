@@ -27,10 +27,10 @@ import settings as C
 camera = picamera.PiCamera()
 
 # MHT: 270
-# camera.rotation = 270
+camera.rotation = 270
 
 # Cell Sensor, at home, 90
-camera.rotation = 90
+# camera.rotation = 90
 
 printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 
