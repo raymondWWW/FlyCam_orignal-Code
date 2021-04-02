@@ -29,7 +29,14 @@ def main():
     camera = PiCamera()
     camera.resolution = (640, 480)
     camera.framerate = 32
+    # MHT: 270
+    # camera.rotation = 270
+
+    # Cell Sensor, at home, 90
+    camera.rotation = 90
+    
     rawCapture = PiRGBArray(camera, size=(640, 480))
+    
     #
     # allow the camera to warmup
     time.sleep(0.1)
@@ -43,7 +50,7 @@ def main():
 
     # Define Window Layout
     layout = [
-        [sg.Text("Video PlaceHolder", size=(60, 1), justification="center")],
+        [sg.Image(filename='', key='-IMAGE-')],
         [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
         [sg.Text("", size=(5, 1)), sg.Button("Up", size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button("z-", size=(5, 1))],
         [sg.Button("Left", size=(10, 1)), sg.Button("Right", size=(10, 1))],
@@ -56,9 +63,14 @@ def main():
 
     # Create window and show it without plot
     window = sg.Window("3D Printer GUI Test", layout, location=(800, 400))
-
-    while True:
-        event, values = window.read()
+    
+    # This for loop may cause problems if the camera feed dies, it will close everything?
+    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    # while True:
+        event, values = window.read(timeout=20)
+        
+        frame = frame.array
+        
         if event == sg.WIN_CLOSED:
             break
         elif event == "Get Current Location":
@@ -88,6 +100,15 @@ def main():
             printer.run_gcode("G91")
             printer.run_gcode("G0Z1.00")
         # print("You entered ", values[0])
+        # Original
+        imgbytes = cv2.imencode('.png', frame)[1].tobytes()
+        
+        # Update GUI Window with new image
+        window['-IMAGE-'].update(data=imgbytes)
+        
+        # clear the stream in preparation for the next frame
+        # Must do this, else it won't work
+        rawCapture.truncate(0)
 
     window.close()
     # For loop to show camera feed
