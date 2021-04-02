@@ -19,13 +19,13 @@ import settings as C
 
 # Setup camera and printer
 # Create printer/camera variables
-camera = picamera.PiCamera()
+# camera = picamera.PiCamera()
 
 # MHT: 270
 # camera.rotation = 270
 
 # Cell Sensor, at home, 90
-camera.rotation = 90
+# camera.rotation = 90
 
 printer = serial.Serial(C.DEVICE_PATH, baudrate=C.BAUDRATE, timeout=C.TIMEOUT_TIME)
 
@@ -59,14 +59,14 @@ def initial_setup(path_list):
     # printer.write(b'G28\n')
     go_home()
     # time.sleep(C.REBOOT_WAIT_TIME)
-    time.sleep(20)
+    time.sleep(15)
     # start_position = C.loc_list[0]
     start_position_z = "G0Z{}".format(starting_location_z)
     run_gcode(start_position_z)
-    time.sleep(10)
+    time.sleep(8)
     start_position = "G0X{}Y{}".format(starting_location_x, starting_location_y)
     run_gcode(start_position)
-    time.sleep(10)
+    time.sleep(8)
 
 
 # Function: Make Extruder and Build Plate Go to Origin/Home.
@@ -168,47 +168,47 @@ def convert_list_to_gcode_strings(path_list):
 
 
 # Define function, start_experiment with flag isPreviewModeOn, isRecordingModeOn
-def start_experiment(gcode_string_list):
-    #   If isPreviewModeOn is true, no pictures/video taken, but camera stays on to show location movements
-    #   else take picture or video (check isRecordingModeOn flag)
+# def start_experiment(gcode_string_list):
+    # #   If isPreviewModeOn is true, no pictures/video taken, but camera stays on to show location movements
+    # #   else take picture or video (check isRecordingModeOn flag)
 
-    # Create Folder (based on conditions)
-    if C.isPreviewModeOn == False:
-        folder_path = create_and_get_folder_path()
+    # # Create Folder (based on conditions)
+    # if C.isPreviewModeOn == False:
+        # folder_path = create_and_get_folder_path()
 
-    # Go into Absolute Positioning Mode
-    run_gcode(C.ABSOLUTE_POS)
+    # # Go into Absolute Positioning Mode
+    # run_gcode(C.ABSOLUTE_POS)
 
-    while True:
-        # Use for loop to go through each gcode string list
-        well_number = 1
-        for gcode_string in gcode_string_list:
-            # print(gcode_string)
-            run_gcode(gcode_string)
-            time.sleep(4)
-            if C.isPreviewModeOn == True:
-                print("Preview Mode is On, only showing preview camera")
-                camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
-                time.sleep(5)
+    # while True:
+        # # Use for loop to go through each gcode string list
+        # well_number = 1
+        # for gcode_string in gcode_string_list:
+            # # print(gcode_string)
+            # run_gcode(gcode_string)
+            # time.sleep(4)
+            # if C.isPreviewModeOn == True:
+                # print("Preview Mode is On, only showing preview camera")
+                # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+                # time.sleep(5)
 
-                # camera.stop_preview()
-            elif C.isVideoCaptureModeOn == True:
-                print("Recording Video Footage")
-                file_full_path = get_file_full_path(folder_path, well_number)
-                # TODO: Change to Video Captures
+                # # camera.stop_preview()
+            # elif C.isVideoCaptureModeOn == True:
+                # print("Recording Video Footage")
+                # file_full_path = get_file_full_path(folder_path, well_number)
+                # # TODO: Change to Video Captures
+                # # camera.capture(file_full_path)
+            # elif C.isPictureCaptureModeOn == True:
+                # print("Taking Pictures Only")
+                # file_full_path = get_file_full_path(folder_path, well_number)
+                # print(file_full_path)
                 # camera.capture(file_full_path)
-            elif C.isPictureCaptureModeOn == True:
-                print("Taking Pictures Only")
-                file_full_path = get_file_full_path(folder_path, well_number)
-                print(file_full_path)
-                camera.capture(file_full_path)
-                # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+                # # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
 
-                camera.capture(file_full_path)
-            well_number += 1
+                # camera.capture(file_full_path)
+            # well_number += 1
 
-    if C.isPreviewModeOn == True:
-        camera.stop_preview()
+    # if C.isPreviewModeOn == True:
+        # camera.stop_preview()
 
 
 # Define function that creates folder for experiment if VideoCapture or PictureCapture is on

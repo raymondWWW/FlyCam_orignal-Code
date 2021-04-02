@@ -25,7 +25,14 @@ import printer_connection as printer
 def main():
 
     # Setup Camera
-    
+    # initialize the camera and grab a reference to the raw camera capture
+    camera = PiCamera()
+    camera.resolution = (640, 480)
+    camera.framerate = 32
+    rawCapture = PiRGBArray(camera, size=(640, 480))
+    #
+    # allow the camera to warmup
+    time.sleep(0.1)
     
     # Setup 3D Printer
     csv_filename = "testing/file2.csv"
@@ -58,16 +65,28 @@ def main():
             print("You pressed Get Current Location!")
         elif event == "Up":
             print("You pressed Up!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0Y1.00")
         elif event == "Down":
             print("You pressed Down!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0Y-1.00")
         elif event == "Left":
             print("You pressed Left!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0X-1.00")
         elif event == "Right":
             print("You pressed Right!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0X1.00")
         elif event == "z-":
             print("You pressed z-!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0Z-1.00")
         elif event == "z+":
             print("You pressed z+!")
+            printer.run_gcode("G91")
+            printer.run_gcode("G0Z1.00")
         # print("You entered ", values[0])
 
     window.close()
