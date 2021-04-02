@@ -281,3 +281,33 @@ def menu(gcode_string_list):
             continue
 
     pass
+
+
+# Function: Listen on Serial Port, print results
+def output_serial_data():
+    global printer
+    
+    # output = printer.readline()
+    printer.flush()
+    bytesToRead = printer.inWaiting()
+    print("bytesToRead:", bytesToRead)
+    output = printer.read(bytesToRead)
+    # output = printer.read(512)
+    # output = str(output)
+    output = output.decode("utf-8")
+    print("Serial Says:", output)
+
+def get_serial_data():
+    global printer
+    
+    # output = printer.readline()
+    printer.flush()
+    bytesToRead = printer.inWaiting()
+    print("bytesToRead:", bytesToRead)
+    output = printer.read(bytesToRead)
+    # output = printer.read(512)
+    # output = str(output)
+    output = output.decode("utf-8")
+    # print("Serial Says:", output)
+    return output
+

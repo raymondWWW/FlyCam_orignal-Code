@@ -74,7 +74,17 @@ def main():
         if event == sg.WIN_CLOSED:
             break
         elif event == "Get Current Location":
+            print("===================================")
             print("You pressed Get Current Location!")
+            printer.run_gcode("M114")
+            serial_string = printer.get_serial_data()
+            if GCL.does_location_exist_m114(serial_string) == True:
+                current_location_dictionary, is_location_found = GCL.parse_m114(serial_string)
+                print(current_location_dictionary)
+                printer.printer.flush()
+            else:
+                print("Location Not Found, Try Again")
+                printer.printer.flush()
         elif event == "Up":
             print("You pressed Up!")
             printer.run_gcode("G91")
@@ -99,6 +109,7 @@ def main():
             print("You pressed z+!")
             printer.run_gcode("G91")
             printer.run_gcode("G0Z1.00")
+        
         # print("You entered ", values[0])
         # Original
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()
