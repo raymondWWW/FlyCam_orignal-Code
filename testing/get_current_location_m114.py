@@ -17,10 +17,13 @@ Things to think about:
 
 # import parse library
 from parse import search
+import parse
 
 # CONSTANTS
-KEYWORD_SEARCH = "X:{:.2f}"
-
+SEARCH_KEYWORDS = ["X:{:.2f}", "Y:{:.2f}", "Z:{:.2f}"]
+X = "X"
+Y = "Y"
+Z = "Z"
 # TODO: get_current_location_manager_m114()
 
 
@@ -33,7 +36,8 @@ def does_location_exist_m114(serial_string):
 
     # Search Keywords
     # TODO: Phrase might be a better term
-    search_keywords = ["X:{}", "Y:{}", "Z:{}"]
+    # search_keywords = ["X:{}", "Y:{}", "Z:{}"]
+    # search_keywords = ["X:{:.2f}", "Y:{:.2f}", "Z:{:.2f}"]
 
     # TODO: Figure out how to search all 3 Coordinates, maybe a list to a generic function?
 
@@ -41,52 +45,76 @@ def does_location_exist_m114(serial_string):
     true_counter = 0
 
     # Go through each keyword and search for them in the serial_string
-    for keyword in search_keywords:
+    for keyword in SEARCH_KEYWORDS:
 
         # Search for keyword in the serial_string
-        search_result = search(keyword, serial_string)
+        search_result = parse.search(keyword, serial_string)
 
         # If search_result has a hit, then increment true_counter
         if search_result is not None:
             true_counter += 1
 
     # If the true_counter matches the number of keywords, all 3 were found in serial_string.
-    if true_counter == len(search_keywords):
-        print("X, Y, and Z found!")
+    if true_counter == len(SEARCH_KEYWORDS):
+        # Uncomment to check if function works
+        # print("X, Y, and Z found!")
         is_location_found = True
     else:
         # TODO: Consider removing this print statements or leaving them for debugging purposes
-        print("Not Found! X, Y, and Z could NOT be found!")
+        # Uncomment to check if function works
+        # print("Not Found! X, Y, and Z could NOT be found!")
+        pass
 
     return is_location_found
 
 
 
 # Define function parse_m114(serial_string)
-#   Uses findall to get all incidents of "X:{}", "Y:{}", and "Z:{}",
-#     then uses last result (this is usually the current location).
-#     Returns current_location_dictionary and boolean (True if successful, False if current location could not be parsed or found)
-# Algorithm:
-#  Initialize current_location_dictionary with placeholder values (zero) for x, y, z
-#  Initialize isLocationFound with False
-#  Use findall to find all incidents of "X:{}", store into search_results_x variable
-#  Use findall to find all incidents of "Y:{}", store into search_results_y variable
-#  Use findall to find all incidents of "Z:{}", store into search_results_z variable
+def parse_m114(serial_string):
+    # Function assumes x, y, and z exist in the serial string, but does have backup solution if it doesn't
 
-#  Initialize counter variable, temp_x (for storing the x value found,
-#    to be put into the current_location_dictionary later)
-#  Use a for loop to go through all of search_results_x
-#    store results into temp_x
-#    increment counter
-#  if counter is zero, isLocationFound = False
-#  if counter is 1+, the last search result should be current location. TODO: Test if this is true.
+    # Initialize search_keywords for Findall
 
-# Repeat the above, now with y and z. TODO: Consider creating a function that does the above
+    # Initialize current_location_dictionary placeholder, and is_location_found
+    current_location_dictionary = {"X": 0.00, "Y": 0.00, "Z": 0.00}
+    is_location_found = False
+    if does_location_exist_m114(serial_string) == False:
+        return current_location_dictionary, is_location_found
 
-# Return current_location_dictionary and isLocationFound
+    # Use for loop to go through each element of SEARCH_KEYWORDS
+    # Assumes iterator is finite
+    for keyword in SEARCH_KEYWORDS:
+        # Uncomment to debug and see keywords
+        # print("===================")
+        # print("keyword:", keyword)
 
-# TODO: Use a search_keywords list to automate the usage of findall.
+        # Use findall to search for keyword
+        search_result = parse.findall(keyword, serial_string)
 
+        # Initialize counter variable to count number of hits
+        count = 0
+        # Go through each result (r) of search_result
+        for r in search_result:
+            # Uncomment to see first element of r, this is the search result
+            # print("r:", r[0])
+
+            # Grab first character of the keyword, should be X, Y, or Z
+            coordinate_letter = keyword[0]
+
+            # Use that coordinate letter to store the result, r
+            # Captures the last search result with this method
+            # TODO: Think of another way that doesn't require going through all elements of the iterator.
+            current_location_dictionary[coordinate_letter] = r[0]
+            count += 1
+
+        # If count is not zero (then that means there is a search result!)
+        if count != 0:
+            # Uncomment to debug
+            # print("All X, Y, and Z coordinates have been found!")
+            # If there is a search result, set is_location_found to True
+            is_location_found = True
+
+    return current_location_dictionary, is_location_found
 
 
 # Future Functions:
@@ -96,13 +124,23 @@ def does_location_exist_m114(serial_string):
 
 
 def main():
-    serial_string = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.00Y:5.00Z:102.00\nok"
+    # serial_string = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.01Y:5.02Z:102.03\nok"
     # serial_string = "wait\nwait\nok\nX:1.23 Y:3.45 Z:5.678 E:0.0000"
     # serial_string = "blah"
-    # serial_string = "X:1.45Y:2.67"
+    serial_string = "X:1.45Y:2.67"
+
+    # is_location_found = does_location_exist_m114(serial_string)
+    # print("is_location_found:", is_location_found)
+
+    # current_location_dictionary, is_location_found = parse_m114(serial_string)
+    # print("current_location_dictionary:", current_location_dictionary, "\nis_location_found:", is_location_found)
 
     is_location_found = does_location_exist_m114(serial_string)
-    print("is_location_found:", is_location_found)
+    if is_location_found == True:
+        current_location_dictionary, is_location_found = parse_m114(serial_string)
+        print("current_location_dictionary:", current_location_dictionary, "\nis_location_found:", is_location_found)
+    else:
+        print("nothing Found, should search again")
 
     pass
 
