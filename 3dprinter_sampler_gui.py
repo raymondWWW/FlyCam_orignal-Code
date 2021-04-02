@@ -10,20 +10,27 @@ Current Goals:
 # Import PySimpleGUI, cv2, numpy, time libraries
 # Import picamera libraries
 
-# from picamera.array import PiRGBArray
-# from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import PySimpleGUI as sg
-# import cv2
-# import numpy as np
-# import time
+import cv2
+import numpy as np
+import time
 
 # Import modules
-# get_current_location_m114
+import get_current_location_m114 as GCL
+import printer_connection as printer
 
 # define main function
 def main():
 
     # Setup Camera
+    
+    
+    # Setup 3D Printer
+    csv_filename = "testing/file2.csv"
+    path_list = printer.get_path_list_csv(csv_filename)
+    printer.initial_setup(path_list)
 
     sg.theme("LightGreen")
 
