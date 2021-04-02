@@ -31,22 +31,39 @@ def does_location_exist_m114(serial_string):
     # Intialize is_location_found as False, this will be returned
     is_location_found = False
 
-    # TODO: Figure out how to search all 3 Coordinates, maybe a list of generic function?
+    # Search Keywords
+    # TODO: Phrase might be a better term
+    search_keywords = ["X:{}", "Y:{}", "Z:{}"]
 
-    # Using Parse Library, search for the X Keyword in serial_string
-    search_result = search(KEYWORD_SEARCH, serial_string)
+    # TODO: Figure out how to search all 3 Coordinates, maybe a list to a generic function?
 
-    # If None is not found, set is_location_found to True, otherwise it is false.
-    if search_result is not None:
+    # Initialize true_counter to keep track of how many True search results are received (should be 3)
+    true_counter = 0
+
+    # Go through each keyword and search for them in the serial_string
+    for keyword in search_keywords:
+
+        # Search for keyword in the serial_string
+        search_result = search(keyword, serial_string)
+
+        # If search_result has a hit, then increment true_counter
+        if search_result is not None:
+            true_counter += 1
+
+    # If the true_counter matches the number of keywords, all 3 were found in serial_string.
+    if true_counter == len(search_keywords):
+        print("X, Y, and Z found!")
         is_location_found = True
+    else:
+        # TODO: Consider removing this print statements or leaving them for debugging purposes
+        print("Not Found! X, Y, and Z could NOT be found!")
 
-    # return is_location_found
     return is_location_found
 
 
 
 # Define function parse_m114(serial_string)
-#   Uses findall to get all incidents of" X:{}", "Y:{}", and "Z:{}",
+#   Uses findall to get all incidents of "X:{}", "Y:{}", and "Z:{}",
 #     then uses last result (this is usually the current location).
 #     Returns current_location_dictionary and boolean (True if successful, False if current location could not be parsed or found)
 # Algorithm:
@@ -79,9 +96,10 @@ def does_location_exist_m114(serial_string):
 
 
 def main():
-    # serial_string = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.00Y:5.00Z:102.00\nok"
+    serial_string = "X:1.45Y:2.67Z:100.09E:3.00 Count X: 4.00Y:5.00Z:102.00\nok"
     # serial_string = "wait\nwait\nok\nX:1.23 Y:3.45 Z:5.678 E:0.0000"
-    serial_string = "blah"
+    # serial_string = "blah"
+    # serial_string = "X:1.45Y:2.67"
 
     is_location_found = does_location_exist_m114(serial_string)
     print("is_location_found:", is_location_found)
