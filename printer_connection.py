@@ -92,7 +92,7 @@ def run_gcode(gcode_string):
     print(gcode_string)
 
     # Convert to Binary with UTF-8 encoding for string, write to serial
-    printer.write(bytes(gcode_string, "utf-8"))
+    # printer.write(bytes(gcode_string, "utf-8"))
     printer.write(str.encode(gcode_string))
 
     # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
