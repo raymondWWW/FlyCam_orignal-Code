@@ -74,6 +74,11 @@ def go_home():
     run_gcode(C.HOME)
 
 
+# Define Function That Runs Relative Coordinates
+# Inputs, cartesian direction (x, y, or z), and the amount (float, can be positive or negative)
+# Runs G91 GCode first
+# Converts direction and amount into a gcode string, sends to run_gcode.
+
 # Define function, run_gcode_ that runs a GCode string
 # Function: Convert String to binary/Gcode, write to serial
 def run_gcode(gcode_string):
