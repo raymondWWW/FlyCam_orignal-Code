@@ -18,6 +18,7 @@ import numpy as np
 import time
 
 # Import modules
+import settings as C
 import get_current_location_m114 as GCL
 import printer_connection as printer
 
@@ -33,7 +34,10 @@ def main():
     # camera.rotation = 270
 
     # Cell Sensor, at home, 90
-    camera.rotation = 90
+    # camera.rotation = 90
+    
+    # MHT: 270, Cell Sensor: 90
+    camera.rotation = C.CAMERA_ROTATION_ANGLE
     
     rawCapture = PiRGBArray(camera, size=(640, 480))
     

@@ -27,10 +27,19 @@ import settings as C
 camera = picamera.PiCamera()
 
 # MHT: 270
-camera.rotation = 270
+# camera.rotation = 270
 
 # Cell Sensor, at home, 90
 # camera.rotation = 90
+
+# TODO: Put this rotation information in the YAML settings file
+# if C.PROJECT == "mht":
+    # camera.rotation = 270
+# elif C.PROJECT = "cell_sensor":
+    # camera.rotation = 90
+
+# MHT: 270, Cell Sensor: 90
+camera.rotation = C.CAMERA_ROTATION_ANGLE
 
 printer = serial.Serial(C.DEVICE_PATH, baudrate = C.BAUDRATE, timeout = C.TIMEOUT_TIME)
 

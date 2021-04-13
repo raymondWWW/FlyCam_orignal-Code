@@ -27,6 +27,9 @@ isPreviewModeOn = False
 isVideoCaptureModeOn = False
 isPictureCaptureModeOn = True
 
+# Camera Rotation
+CAMERA_ROTATION_ANGLE = 0
+
 # File and Folder Names
 # TODO: Put in a settings file?
 FOLDERNAME_PREFIX = "Code"
@@ -65,7 +68,9 @@ with open("connection_settings.yaml") as file:
     Y_MAX = connection_settings_dict[PROJECT]["monoprice"]["max"]["y"]
     Z_MAX = connection_settings_dict[PROJECT]["monoprice"]["max"]["z"]
     MAX_SPEED = connection_settings_dict[PROJECT]["monoprice"]["max"]["speed"]
+    CAMERA_ROTATION_ANGLE = connection_settings_dict[PROJECT]["monoprice"]["camera_rotation"]
     print("Loaded Settings for:", connection_settings_dict[PROJECT]["monoprice"]["name"])
+    print("CAMERA_ROTATION_ANGLE", CAMERA_ROTATION_ANGLE)
 
 # User Defined function that can change Constants by having user load up a YAML file and choosing a different 3D printer
 # TODO: Later feature
