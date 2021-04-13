@@ -22,6 +22,91 @@ import settings as C
 import get_current_location_m114 as GCL
 import printer_connection as printer
 
+# USER CONSTANTS - GUI #
+# TODO: Put these in a YAML GUI Settings File?
+# Create constants for:
+# Radio Keys
+RELATIVE_TENTH_KEY = "-REL_TENTH-"
+RELATIVE_ONE_KEY = "-REL_ONE-"
+RELATIVE_TEN_KEY = "-REL_TEN-"
+RADIO_GROUP = "RADIO1"
+RELATIVE_TENTH_TEXT = "0.10mm"
+RELATIVE_ONE_TEXT = "1.00mm"
+RELATIVE_TEN_TEXT = "10.00mm"
+DEFAULT_DISTANCE = "0.00"
+
+# X+, X-, Y+, Y-, Z+, or Z-
+X_PLUS = "X+"
+X_MINUS = "X-"
+Y_PLUS = "Y+"
+Y_MINUS = "Y-"
+Z_PLUS = "Z+"
+Z_MINUS = "Z-"
+# WINDOW_GUI_TIMEOUT
+WINDOW_GUI_TIMEOUT = 10 # in ms
+
+# USER DEFINED FUNCTIONS #
+
+# Define function, run_relative(direction, values)
+def run_relative(direction, values):
+    #   Converts input into GCODE String, then calls run_gcode from printer module (not implemented in this demo)
+    #   Inputs: takes string direction (X+, X-, Y+, Y-, Z+, or Z-)
+    #           values from window.read()
+
+    # For debugging, uncomment to see if the direction (event) and values are being passed correctly
+    # print("direction:", direction)
+    # print("values:", values)
+
+    # TODO: Test if Plus (+) character is allowed in GCODE, otherwise use a if/else statement to remove it.
+
+    # Initialize move_amount to 0.00
+    move_amount = DEFAULT_DISTANCE
+
+    # Initialize relative_coordinates variable to direction and 0.00 (example: G0X0.00, no movements)
+    relative_coordinates = "{}{}".format(direction, move_amount)
+
+    # For debugging, uncomment to see if the formatting matches the example
+    # print("relative_coordinates:", relative_coordinates)
+
+    # For debugging, uncomment to see the move_amount before the if/elif chain
+    # print("move_amount (before):", move_amount)
+
+    # Use if/elif chain to check which radio button is true (0.1, 1, or 10)
+    # If values[-REL_TENTH-] == True
+    #  Example If 0.1 true, change relative coordinates to X-0.10
+    # else if the values of relative one is True
+    #  Make movement amount into 1.00
+    # else if the values of relative ten is True
+    #  Make movement amount into 1.00
+    if values[RELATIVE_TENTH_KEY] == True:
+        # print(RELATIVE_TENTH_KEY, "is active")
+        # Extract only the float number, ignoring the "mm"
+        move_amount = RELATIVE_TENTH_TEXT[0:-2]
+    elif values[RELATIVE_ONE_KEY] == True:
+        # print(RELATIVE_ONE_KEY, "is active")
+        move_amount = RELATIVE_ONE_TEXT[0:-2]
+    elif values[RELATIVE_TEN_KEY] == True:
+        # print(RELATIVE_TEN_KEY, "is active")
+        move_amount = RELATIVE_TEN_TEXT[0:-2]
+
+    # For debugging, uncomment to see the move_amount after the if/elif chain. Did it change?
+    # print("move_amount (after):", move_amount)
+
+    #  Use string formatting to create GCode string (example: G0X-1.00)
+    relative_coordinates = "G0{}{}".format(direction, move_amount)
+
+    print("relative_coordinates:", relative_coordinates)
+
+    # This is where you would run the GCode
+    # Run Relative Mode
+    printer.run_gcode("G91")
+            
+    # Run relative_coordinates GCODE created in this function
+    printer.run_gcode(relative_coordinates)
+#   TODO: Extruder Speed Adjustment
+
+
+
 # define main function
 def main():
 
@@ -56,9 +141,12 @@ def main():
     layout = [
         [sg.Image(filename='', key='-IMAGE-')],
         [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
-        [sg.Text("", size=(5, 1)), sg.Button("Up", size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button("z-", size=(5, 1))],
-        [sg.Button("Left", size=(10, 1)), sg.Button("Right", size=(10, 1))],
-        [sg.Text("", size=(5, 1)), sg.Button("Down", size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button("z+", size=(5, 1))]
+        [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
+            sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
+            sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
+        [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
+        [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
+        [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))]
     ]
     # Have Camera Feed Window
     # To the right, xy, and z
@@ -89,30 +177,32 @@ def main():
             else:
                 print("Location Not Found, Try Again")
                 printer.printer.flush()
-        elif event == "Up":
-            print("You pressed Up!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0Y1.00")
-        elif event == "Down":
-            print("You pressed Down!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0Y-1.00")
-        elif event == "Left":
-            print("You pressed Left!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0X-1.00")
-        elif event == "Right":
-            print("You pressed Right!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0X1.00")
-        elif event == "z-":
-            print("You pressed z-!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0Z-1.00")
-        elif event == "z+":
-            print("You pressed z+!")
-            printer.run_gcode("G91")
-            printer.run_gcode("G0Z1.00")
+        elif event in [X_PLUS, X_MINUS, Y_PLUS, Y_MINUS, Z_PLUS, Z_MINUS]:
+            run_relative(event, values)
+        # elif event == "Up":
+            # print("You pressed Up!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0Y1.00")
+        # elif event == "Down":
+            # print("You pressed Down!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0Y-1.00")
+        # elif event == "Left":
+            # print("You pressed Left!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0X-1.00")
+        # elif event == "Right":
+            # print("You pressed Right!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0X1.00")
+        # elif event == "z-":
+            # print("You pressed z-!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0Z-1.00")
+        # elif event == "z+":
+            # print("You pressed z+!")
+            # printer.run_gcode("G91")
+            # printer.run_gcode("G0Z1.00")
         
         # print("You entered ", values[0])
         # Original

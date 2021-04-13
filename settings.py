@@ -70,7 +70,7 @@ with open("connection_settings.yaml") as file:
     MAX_SPEED = connection_settings_dict[PROJECT]["monoprice"]["max"]["speed"]
     CAMERA_ROTATION_ANGLE = connection_settings_dict[PROJECT]["monoprice"]["camera_rotation"]
     print("Loaded Settings for:", connection_settings_dict[PROJECT]["monoprice"]["name"])
-    print("CAMERA_ROTATION_ANGLE", CAMERA_ROTATION_ANGLE)
+    # print("CAMERA_ROTATION_ANGLE", CAMERA_ROTATION_ANGLE)
 
 # User Defined function that can change Constants by having user load up a YAML file and choosing a different 3D printer
 # TODO: Later feature
