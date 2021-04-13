@@ -9,6 +9,9 @@ import PySimpleGUI as sg
 import cv2
 import numpy as np
 
+import time
+
+
 """
 Demo program that displays a webcam using OpenCV and applies some very basic image functions
 - functions from top to bottom -
@@ -75,7 +78,6 @@ def main():
 
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()
         window['-IMAGE-'].update(data=imgbytes)
-
     window.close()
 
 
