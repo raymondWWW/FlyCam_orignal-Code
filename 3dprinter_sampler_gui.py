@@ -106,6 +106,30 @@ def run_relative(direction, values):
 #   TODO: Extruder Speed Adjustment
 
 
+# define get_current_location_manager()
+# print("===================================")
+# print("You pressed Get Current Location!")
+# printer.run_gcode("M114")
+# serial_string = printer.get_serial_data()
+# if GCL.does_location_exist_m114(serial_string) == True:
+    # current_location_dictionary, is_location_found = GCL.parse_m114(serial_string)
+    # print(current_location_dictionary)
+    # printer.printer.flush()
+# else:
+    # print("Location Not Found, Try Again")
+    # printer.printer.flush()
+# TODO: Test out flush, then M114, will this prevent having to do it twice?
+# Algorithm:
+#  Flush, run M114, set serial data, check
+#   if location not found, run again?
+
+
+# TODO: Check how image capture works with GUI
+
+
+# TODO: Include picamera settings
+
+
 
 # define main function
 def main():
@@ -179,30 +203,7 @@ def main():
                 printer.printer.flush()
         elif event in [X_PLUS, X_MINUS, Y_PLUS, Y_MINUS, Z_PLUS, Z_MINUS]:
             run_relative(event, values)
-        # elif event == "Up":
-            # print("You pressed Up!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0Y1.00")
-        # elif event == "Down":
-            # print("You pressed Down!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0Y-1.00")
-        # elif event == "Left":
-            # print("You pressed Left!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0X-1.00")
-        # elif event == "Right":
-            # print("You pressed Right!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0X1.00")
-        # elif event == "z-":
-            # print("You pressed z-!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0Z-1.00")
-        # elif event == "z+":
-            # print("You pressed z+!")
-            # printer.run_gcode("G91")
-            # printer.run_gcode("G0Z1.00")
+
         
         # print("You entered ", values[0])
         # Original
