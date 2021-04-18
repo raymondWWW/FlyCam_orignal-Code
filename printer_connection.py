@@ -59,15 +59,27 @@ def initial_setup(path_list):
     # printer.write(b'G28\n')
     go_home()
     # time.sleep(C.REBOOT_WAIT_TIME)
-    time.sleep(15)
-    # start_position = C.loc_list[0]
-    start_position_z = "G0Z{}".format(starting_location_z)
-    run_gcode(start_position_z)
-    time.sleep(8)
-    start_position = "G0X{}Y{}".format(starting_location_x, starting_location_y)
-    run_gcode(start_position)
-    time.sleep(8)
+    time.sleep(10)
+    
+    move_extruder_out_of_the_way(x=starting_location_x, y=starting_location_y, z=starting_location_z)
+    # start_position_z = "G0Z{}".format(starting_location_z)
+    # run_gcode(start_position_z)
+    # time.sleep(8)
+    # start_position = "G0X{}Y{}".format(starting_location_x, starting_location_y)
+    # run_gcode(start_position)
+    # time.sleep(8)
 
+
+def move_extruder_out_of_the_way(x, y, z):
+    WAIT_TIME = 5
+    
+    start_position_z = "G0Z{}".format(z)
+    run_gcode(start_position_z)
+    time.sleep(WAIT_TIME)
+    start_position = "G0X{}Y{}".format(x, y)
+    run_gcode(start_position)
+    time.sleep(WAIT_TIME)
+    
 
 # Function: Make Extruder and Build Plate Go to Origin/Home.
 def go_home():

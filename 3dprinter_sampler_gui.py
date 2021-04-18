@@ -170,7 +170,10 @@ def main():
             sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
         [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
         [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
-        [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))]
+        [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Input GCODE (e.g. G0X0Y50):")],
+        [sg.InputText(size=(30, 1), key="-GCODE_INPUT-"), sg.Button("Run", size=(5, 1)), sg.Button("Clear", size=(5, 1))]
     ]
     # Have Camera Feed Window
     # To the right, xy, and z
@@ -186,7 +189,7 @@ def main():
         event, values = window.read(timeout=20)
         
         frame = frame.array
-        
+                
         if event == sg.WIN_CLOSED:
             break
         elif event == "Get Current Location":
@@ -197,12 +200,20 @@ def main():
             if GCL.does_location_exist_m114(serial_string) == True:
                 current_location_dictionary, is_location_found = GCL.parse_m114(serial_string)
                 print(current_location_dictionary)
-                printer.printer.flush()
+                # printer.printer.flush()
             else:
                 print("Location Not Found, Try Again")
-                printer.printer.flush()
+                # printer.printer.flush()
         elif event in [X_PLUS, X_MINUS, Y_PLUS, Y_MINUS, Z_PLUS, Z_MINUS]:
+            # If any of the direction buttons are pressed, move extruder
+            #  in that direction using the increment radio amounts
             run_relative(event, values)
+        elif event == "Run":
+            # Run GCODE found in the GCode  InputText box
+            printer.run_gcode(values["-GCODE_INPUT-"])
+        elif event == "Clear":
+            # Clear GCode InputText box
+            window.FindElement("-GCODE_INPUT-").Update("")
 
         
         # print("You entered ", values[0])
@@ -216,7 +227,14 @@ def main():
         # Must do this, else it won't work
         rawCapture.truncate(0)
 
+    # Out of While Loop
+    
+    # Closing Window
     window.close()
+    
+    # Closing 3D Printer Serial Connection
+    printer.printer.close()
+    
     # For loop to show camera feed
     pass
 
