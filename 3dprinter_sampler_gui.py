@@ -1,10 +1,29 @@
 """
 Graphical User Interface for using the 3D Printer to take picture/video samples
+Author: Johnny Duong
+Projects: Cell Sensor and MHT
+San Francisco State University
 
-Current Goals:
+Current Features:
 -Has Camera Feed
--Can move X, Y, Z of 3D Printer
+-Can move X, Y, Z of 3D Printer in various relative direction and increments
 -Can get Current Location of Extruder Nozzle
+-Input Custom GCode
+
+Future Features:
+-Smart Movement: Only take a picture or video if current location is
+                 the destination (+/- 1 mm)
+-Be able to take picture/video without interferring with camera feed
+-Save/Open CSV Option for locations
+-Preview Sample Locations
+-Run Experiment (photo or video, maybe use a radio button)
+   -Run for x iterations
+-Camera Settings (white balance, sharpness, and so on)
+-Display Current Location in GUI
+
+Changelog
+18 Apr 2021: Started Changelog, Allow user to input their own GCode.
+
 """
 
 # Import PySimpleGUI, cv2, numpy, time libraries
