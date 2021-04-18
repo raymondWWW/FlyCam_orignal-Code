@@ -21,6 +21,10 @@ Future Features:
 -Camera Settings (white balance, sharpness, and so on)
 -Display Current Location in GUI
 
+Current TODO List:
+-Get Current Location Mananger (runs it twice to get location)
+-Put GUI Keys/Text as Constants
+
 Changelog
 18 Apr 2021: Started Changelog, Allow user to input their own GCode.
 
