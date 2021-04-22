@@ -93,6 +93,7 @@ sg.theme("DarkAmber")
 #               [LEFT]               [Right]
 #                         [Down]
 #     Keys:    -REL_TENTH-, -REL_ONE-, -REL_TEN-
+
 layout = [ [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
             sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
             sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],

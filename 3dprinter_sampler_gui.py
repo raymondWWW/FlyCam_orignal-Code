@@ -67,6 +67,8 @@ Z_PLUS = "Z+"
 Z_MINUS = "Z-"
 # WINDOW_GUI_TIMEOUT
 WINDOW_GUI_TIMEOUT = 10 # in ms
+# TODO: Put in Constants for GCODE Input
+
 
 # USER DEFINED FUNCTIONS #
 
@@ -79,8 +81,6 @@ def run_relative(direction, values):
     # For debugging, uncomment to see if the direction (event) and values are being passed correctly
     # print("direction:", direction)
     # print("values:", values)
-
-    # TODO: Test if Plus (+) character is allowed in GCODE, otherwise use a if/else statement to remove it.
 
     # Initialize move_amount to 0.00
     move_amount = DEFAULT_DISTANCE
@@ -142,8 +142,9 @@ def run_relative(direction, values):
     # print("Location Not Found, Try Again")
     # printer.printer.flush()
 # TODO: Test out flush, then M114, will this prevent having to do it twice?
+#       Update: No, it doesn't help.
 # Algorithm:
-#  Flush, run M114, set serial data, check
+#  Flush, run M114, set serial data, check, make it run twice
 #   if location not found, run again?
 
 
@@ -152,6 +153,14 @@ def run_relative(direction, values):
 
 # TODO: Include picamera settings
 
+
+# Define function start_experiment(event, values)
+# Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
+# Takes in CSV filename or location list generated from opening CSV file
+# Goes to each location in list and takes picture, video, or nothing
+# TODO: Include input for number of runs or length of time to run?
+#       Recommend number of runs first, then implement countdown algorithm?
+# TODO: Test picture/video capabilities while camera feed is running.
 
 
 # define main function
@@ -184,6 +193,12 @@ def main():
 
     sg.theme("LightGreen")
 
+    # Create tabs layout:
+    # Tab 1: Start Experiment (Pic, vid, or Preview), Open CSV File. Disable Start Experiment if no CSV loaded
+    # Tab 2: Movement Tab, with input GCODE (temp), Future: Move specific coordinates
+    #
+
+    # TODO: Implement tabs layout below
     # Define Window Layout
     layout = [
         [sg.Image(filename='', key='-IMAGE-')],
