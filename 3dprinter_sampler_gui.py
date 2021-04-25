@@ -24,6 +24,9 @@ Future Features:
 Current TODO List:
 -Get Current Location Mananger (runs it twice to get location)
 -Put GUI Keys/Text as Constants
+-Experiment with Tabs
+ Source: https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Tabs_Simple.py
+         https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
 18 Apr 2021: Started Changelog, Allow user to input their own GCode.
