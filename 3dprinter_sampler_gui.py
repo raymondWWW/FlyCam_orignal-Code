@@ -29,6 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+26 Apr 2021: Added in 2 Tabs: Start Experiment and Movement
 18 Apr 2021: Started Changelog, Allow user to input their own GCode.
 
 """
@@ -200,22 +201,46 @@ def main():
     # Tab 1: Start Experiment (Pic, vid, or Preview), Open CSV File. Disable Start Experiment if no CSV loaded
     # Tab 2: Movement Tab, with input GCODE (temp), Future: Move specific coordinates
     #
+    
+    tab_1_layout = [ [sg.Text("Open CSV:"), sg.Input(), sg.FileBrowse(key="-CSV_INPUT-")],
+                     [sg.Button("Start Experiment")]
+                   ]
+    tab_2_layout = [ [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
+                     [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
+                        sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
+                        sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
+                     [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
+                     [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
+                     [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))],
+                     [sg.HorizontalSeparator()],
+                     [sg.Text("Input GCODE (e.g. G0X0Y50):")],
+                     [sg.InputText(size=(30, 1), key="-GCODE_INPUT-"), sg.Button("Run", size=(5, 1)), sg.Button("Clear", size=(5, 1))]
+                   ]
 
     # TODO: Implement tabs layout below
-    # Define Window Layout
-    layout = [
-        [sg.Image(filename='', key='-IMAGE-')],
-        [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
-        [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
-            sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
-            sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
-        [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
-        [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
-        [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))],
-        [sg.HorizontalSeparator()],
-        [sg.Text("Input GCODE (e.g. G0X0Y50):")],
-        [sg.InputText(size=(30, 1), key="-GCODE_INPUT-"), sg.Button("Run", size=(5, 1)), sg.Button("Clear", size=(5, 1))]
-    ]
+    
+    # TABs Layout (New, Experimental
+    layout = [ [sg.Image(filename='', key='-IMAGE-')],
+               [sg.TabGroup([[sg.Tab("Tab 1", tab_1_layout, key="-TAB_1_KEY"),
+                              sg.Tab("Tab 2", tab_2_layout)]])
+               ]
+             ]
+    
+    
+    # Define Window Layout (Original)
+    # layout = [
+        # [sg.Image(filename='', key='-IMAGE-')],
+        # [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
+        # [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
+            # sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
+            # sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
+        # [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
+        # [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
+        # [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))],
+        # [sg.HorizontalSeparator()],
+        # [sg.Text("Input GCODE (e.g. G0X0Y50):")],
+        # [sg.InputText(size=(30, 1), key="-GCODE_INPUT-"), sg.Button("Run", size=(5, 1)), sg.Button("Clear", size=(5, 1))]
+    # ]
     # Have Camera Feed Window
     # To the right, xy, and z
     # Below camera Feed: Show Current Location, Get Current Location Button
@@ -233,6 +258,10 @@ def main():
                 
         if event == sg.WIN_CLOSED:
             break
+        elif event == "Start Experiment":
+            print("CSV File:", values["-CSV_INPUT-"])
+            # Load CSV File into Location List
+            # Go to each location to either take a picture, video, or preview (do nothing)
         elif event == "Get Current Location":
             print("===================================")
             print("You pressed Get Current Location!")
