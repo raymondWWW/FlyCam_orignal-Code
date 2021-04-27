@@ -216,14 +216,14 @@ def main():
                      [sg.Text("Input GCODE (e.g. G0X0Y50):")],
                      [sg.InputText(size=(30, 1), key="-GCODE_INPUT-"), sg.Button("Run", size=(5, 1)), sg.Button("Clear", size=(5, 1))]
                    ]
-
-    # TODO: Implement tabs layout below
     
     # TABs Layout (New, Experimental
+    # TODO: Put in Pic/Video Button, test them out.
     layout = [ [sg.Image(filename='', key='-IMAGE-')],
-               [sg.TabGroup([[sg.Tab("Tab 1", tab_1_layout, key="-TAB_1_KEY"),
-                              sg.Tab("Tab 2", tab_2_layout)]])
-               ]
+               [sg.TabGroup([[sg.Tab("Tab 1 (Exp)", tab_1_layout, key="-TAB_1_KEY"),
+                              sg.Tab("Tab 2 (Mvmt)", tab_2_layout)]])
+               ],
+               [sg.Button("Pic"), sg.Button("Vid")]
              ]
     
     
@@ -258,10 +258,22 @@ def main():
                 
         if event == sg.WIN_CLOSED:
             break
+        # Tab 1 (Experiment):
         elif event == "Start Experiment":
             print("CSV File:", values["-CSV_INPUT-"])
             # Load CSV File into Location List
             # Go to each location to either take a picture, video, or preview (do nothing)
+        elif event == "Pic":
+            print("You Pushed Pic Button")
+            # Take a Picture
+            # camera.resolution = (800, 600)
+            camera.resolution = (2592, 1944)
+            camera.capture("test001.jpg")
+            camera.resolution = (640, 480)
+        elif event == "Vid":
+            print("You Pushed Vid Button")
+            # Take a Video
+        # Tab 2 (Movement)
         elif event == "Get Current Location":
             print("===================================")
             print("You pressed Get Current Location!")
