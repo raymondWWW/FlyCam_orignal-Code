@@ -304,6 +304,7 @@ def main():
     # CSV Version
     # TODO: Change filename to have rowXcol
     csv_filename = "testing/file2.csv"
+    csv_filename = "mht_2plates_copy.csv"
     path_list = get_path_list_csv(csv_filename)
     gcode_string_list = convert_list_to_gcode_strings(path_list)
     # print(gcode_string_list)
