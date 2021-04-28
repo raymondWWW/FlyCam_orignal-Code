@@ -29,6 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+28 Apr 2021: Changed Experiment variables into CONSTANTS
 26 Apr 2021: Added in 2 Tabs: Start Experiment and Movement
 18 Apr 2021: Started Changelog, Allow user to input their own GCode.
 
@@ -48,10 +49,20 @@ import time
 import settings as C
 import get_current_location_m114 as GCL
 import printer_connection as printer
+import prepare_experiment as P
 
-# USER CONSTANTS - GUI #
+# ==== USER CONSTANTS - GUI ====
 # TODO: Put these in a YAML GUI Settings File?
-# Create constants for:
+
+# ---- EXPERIMENT CONSTANTS ----
+OPEN_CSV_PROMPT = "Open CSV:"
+OPEN_CSV_FILEBROWSE_KEY = "-CSV_INPUT-"
+START_EXPERIMENT = "Start Experiment"
+
+# TODO: Create RADIO BUTTON Constants for picture, video, or preview
+#       Create 3 KEYs, 3 Text, and Radio Group (RADIO_EXP)
+
+# --- MOVEMENT CONSTANTS ----
 # Radio Keys
 RELATIVE_TENTH_KEY = "-REL_TENTH-"
 RELATIVE_ONE_KEY = "-REL_ONE-"
@@ -74,7 +85,7 @@ WINDOW_GUI_TIMEOUT = 10 # in ms
 # TODO: Put in Constants for GCODE Input
 
 
-# USER DEFINED FUNCTIONS #
+# ==== USER DEFINED FUNCTIONS =====
 
 # Define function, run_relative(direction, values)
 def run_relative(direction, values):
@@ -161,10 +172,19 @@ def run_relative(direction, values):
 # Define function start_experiment(event, values)
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
+#    Use get_path_list_csv(csv_filename) and convert_list_to_gcode_strings(path_list) from prepare_experiment module
+# Create section for camera setup (or create another function to set camera settings)
+#  Create function to return camera settings to default (for preview?)
+# Create section for video camera setup (length of time to record)
 # Goes to each location in list and takes picture, video, or nothing
-# TODO: Include input for number of runs or length of time to run?
+#   Use for loop to go through each location list
+#     Use if statement chain for radio buttons
+#       If Picture, take picture. If Video, take video. If Preview, only go there.
+# TODO: Include input for number of runs or length of time to run? (Use my Arduino strategy, put in the camera for loop
 #       Recommend number of runs first, then implement countdown algorithm?
-# TODO: Test picture/video capabilities while camera feed is running.
+# TODO: Test picture/video capabilities while camera feed is running. Update, picture works
+
+
 
 
 # define main function
@@ -202,9 +222,14 @@ def main():
     # Tab 2: Movement Tab, with input GCODE (temp), Future: Move specific coordinates
     #
     
-    tab_1_layout = [ [sg.Text("Open CSV:"), sg.Input(), sg.FileBrowse(key="-CSV_INPUT-")],
-                     [sg.Button("Start Experiment")]
+    # Tab 1: Start Experiment Tab
+    # TODO: Create 3 Radio Buttons for Picture, Video, Preview (Default), and Prompt "Choose to take Pictures, Video, or only preview locations"
+    # TODO: Create User Input for number of Trials (use placeholder)
+    tab_1_layout = [ [sg.Text(OPEN_CSV_PROMPT), sg.Input(), sg.FileBrowse(key=OPEN_CSV_FILEBROWSE_KEY)],
+                     [sg.Button(START_EXPERIMENT)]
                    ]
+    
+    # Tab 2: Movement Tab
     tab_2_layout = [ [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
                      [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
                         sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
@@ -250,19 +275,40 @@ def main():
     window = sg.Window("3D Printer GUI Test", layout, location=(800, 400))
     
     # This for loop may cause problems if the camera feed dies, it will close everything?
+    # Create experiment_run_counter
+    # Create Boolean is_running_experiment, default False
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # while True:
         event, values = window.read(timeout=20)
         
         frame = frame.array
+        
+        # Create if statement checking if is_running_experiment
+        #  If is_running_experiment is true:
+        #    Check if event "Stop Experiment" was pressed or if experiment_run_counter hit threshold (use dummy placeholder)
+        #       If it was:
+        #           set is_running_experiment to False
+        #           print set experiment_run_counter (You ran x runs)
+        #           Enable "Start Experiment" Button
+        #           Disable "Stop Experiment" Button
+        #    If "Stop Experiment" button was NOT pressed
+        #       Call function start_experiment(event, values)
+        #       Increment experiment_run_counter
+        #  else:
+        #    Do nothing
                 
         if event == sg.WIN_CLOSED:
             break
         # Tab 1 (Experiment):
-        elif event == "Start Experiment":
-            print("CSV File:", values["-CSV_INPUT-"])
-            # Load CSV File into Location List
-            # Go to each location to either take a picture, video, or preview (do nothing)
+        elif event == START_EXPERIMENT:
+            print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
+            
+            # set is_running_experiment to True
+            # set experiment_run_counter to 0
+            # Disable "Start Experiment" Button
+            # Enable "Stop Experiment" Button
+            
+            
         elif event == "Pic":
             print("You Pushed Pic Button")
             # Take a Picture
