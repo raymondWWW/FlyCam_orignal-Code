@@ -58,10 +58,10 @@ def initial_setup(path_list):
     print("Done Waiting, Moving Extruder and Build Plate to Origin/Home\n")
     # printer.write(b'G28\n')
     go_home()
-    # time.sleep(C.REBOOT_WAIT_TIME)
-    time.sleep(10)
+    time.sleep(C.REBOOT_WAIT_TIME)
+    # time.sleep(10)
     
-    move_extruder_out_of_the_way(x=starting_location_x, y=starting_location_y, z=starting_location_z)
+    # move_extruder_out_of_the_way(x=starting_location_x, y=starting_location_y, z=starting_location_z)
     # start_position_z = "G0Z{}".format(starting_location_z)
     # run_gcode(start_position_z)
     # time.sleep(8)

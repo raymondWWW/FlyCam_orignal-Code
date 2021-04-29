@@ -223,6 +223,49 @@ def run_experiment(event, values):
 # TODO: Test picture/video capabilities while camera feed is running. Update, picture works
 
 
+# Define function get_gcode_string_list(values)
+
+def get_gcode_string_list(values):
+    """
+    Description: Takes CSV File from values (GUI Data), returns gcode_string_list
+    Input: values, a dictionary from PySimpleGUI Window Reads
+    Return/Output: GCode String List for well location.
+    """
+    # Get CSV Filename
+    csv_filename = values[OPEN_CSV_FILEBROWSE_KEY]
+    
+    # Get Path List from CSV
+    path_list = P.get_path_list_csv(csv_filename)
+    
+    # Get GCODE Location List from path_list
+    gcode_string_list = P.convert_list_to_gcode_strings(path_list)
+    
+    # Return gcode_string_list
+    
+    pass
+
+
+# Define function, get_sample(folder_path_sample, values)
+
+def get_sample(folder_path_sample, well_number, values):
+    """
+    Description: Takes Pic/Vid/Preview Radio Values, then takes a
+                 picture, video, or preview (do nothing), stores into
+                 folder_path_sample
+    Inputs:
+      - values, a dictionary from PySimpleGUI Window Reads. The main focus are the Radio values for the Pic/Vid/Preview.
+      - folder_path_sample, a string holding the unique folder path for the samples (prevents accidental overwrite)
+    Return/Output: Doesn't return anything. TODO: Return True/False if failed or successful?
+    """
+    
+    # Create Unique Filename, call get_file_full_path(folder_path, well_number)
+    # Check Experiment Radio Buttons
+    #  If Picture is True, take a picture. Save with unique filename
+    #  If Video is True, take a video. Save with unique filename
+    #  If Preview is True, do nothing or print "Preview Mode"
+    
+    pass
+    
 
 
 # define main function
@@ -317,14 +360,23 @@ def main():
     # Create window and show it without plot
     window = sg.Window("3D Printer GUI Test", layout, location=(800, 400))
     
-    # This for loop may cause problems if the camera feed dies, it will close everything?
+    
     # Create experiment_run_counter
     experiment_run_counter = 0
     # Create Boolean is_running_experiment, default False
     is_running_experiment = False
+    # Initialize well_counter to 0 (used for running experiment, going through GCode location list)
+    
+    # Initialize current_location_dictionary to X=0, Y=0, Z=0
+    
+    # Initialize folder_path_sample to "" ("Start Experiment" will create unique folder name)
+    # **** Note: This for loop may cause problems if the camera feed dies, it will close everything? ****
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # while True:
         event, values = window.read(timeout=20)
+        
+        # Call Get Current Location Manager Function
+        # Print Current Location
         
         frame = frame.array
         
@@ -342,11 +394,25 @@ def main():
         #  else:
         #    Do nothing
         
+        # ---- Run/Start Experiment If statement ----
         # If is_running_experiment is True, increment experiment_run_counter, then run_experiment
         if is_running_experiment == True:
             experiment_run_counter += 1
             run_experiment(event, values)
+            # TODO: Create a destination_list_of_dictionaries from CSV File. Will be used to compare with Current Location
+            # call function get_gcode_string_list(event, values)
+            # well_counter will be index for GCode String List
+            # run GCODE location at well_counter index
+            #   # TODO: Wait until arriving at location, then get sample
+            #   Temporary: Just wait a few seconds, then get sample
+            #   call function that decides to take picture, video, or preview based on radio buttons
+            #   Create well_number variable by adding 1 to well_counter
+            #   name function get_sample(folder_path_sample, well_number, values)
+            # Increment well_counter
+            # if well_counter hits last index of GCODE String List (length - 1), reset well_counter
+            
         
+        # ---- CSV File Checker and "Start Experiment" Enable/Disable If/Else logic
         # Check if CSV file Exists (length is 0 if CSV not loaded)
         #  Enable "Start Experiment" if true, else disable "Start Experiment"
         if len(values[OPEN_CSV_FILEBROWSE_KEY]) != 0:
@@ -360,21 +426,27 @@ def main():
             # Disable "Start Experiment" button
             window[START_EXPERIMENT].update(disabled=True)
         
+        # ---- Main GUI Window If/elif chain ----
         if event == sg.WIN_CLOSED:
             break
         # Tab 1 (Experiment):
         elif event == START_EXPERIMENT:
             print("You pressed Start Experiment")
+            # Reset experiment_run_counter and well_counter
             experiment_run_counter = 0
-            is_running_experiment = True
-            print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
             
-            # set is_running_experiment to True
-            # set experiment_run_counter to 0
+            # Set is_running_experiment to True, we are now running an experiment
+            is_running_experiment = True
+            
+            # Uncomment to see your CSV File (is it the correct path?)
+            # print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
+            
             # Disable "Start Experiment" Button
             window[START_EXPERIMENT].update(disabled=True)
             # Enable "Stop Experiment" Button
             window[STOP_EXPERIMENT].update(disabled=False)
+            
+            # Create Unique Folder, Get that Unique Folder's Name
             
         elif event == STOP_EXPERIMENT or experiment_run_counter == MAX_NUMBER_EXPERIMENTAL_RUNS:
             print("You pressed Stop Experiment or experiment_run_counter hit", MAX_NUMBER_EXPERIMENTAL_RUNS)
