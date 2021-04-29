@@ -58,9 +58,19 @@ import prepare_experiment as P
 OPEN_CSV_PROMPT = "Open CSV:"
 OPEN_CSV_FILEBROWSE_KEY = "-CSV_INPUT-"
 START_EXPERIMENT = "Start Experiment"
+STOP_EXPERIMENT = "Stop Experiment"
+MAX_NUMBER_EXPERIMENTAL_RUNS = 1
 
 # TODO: Create RADIO BUTTON Constants for picture, video, or preview
 #       Create 3 KEYs, 3 Text, and Radio Group (RADIO_EXP)
+EXP_RADIO_PIC_KEY = "-RADIO_PIC-"
+EXP_RADIO_VID_KEY = "-RADIO_VID-"
+EXP_RADIO_PREVIEW_KEY = "-RADIO_PREVIEW-"
+EXP_RADIO_GROUP = "RADIO_EXP"
+EXP_RADIO_PIC_TEXT = "Picture"
+EXP_RADIO_VID_TEXT = "Video"
+EXP_RADIO_PREVIEW_TEXT = "Preview"
+EXP_RADIO_PROMPT = "For the experiment, choose to take Pictures, Videos, or Preview Only"
 
 # --- MOVEMENT CONSTANTS ----
 # Radio Keys
@@ -89,9 +99,10 @@ WINDOW_GUI_TIMEOUT = 10 # in ms
 
 # Define function, run_relative(direction, values)
 def run_relative(direction, values):
-    #   Converts input into GCODE String, then calls run_gcode from printer module (not implemented in this demo)
-    #   Inputs: takes string direction (X+, X-, Y+, Y-, Z+, or Z-)
-    #           values from window.read()
+    # Converts input buttons (direction) into GCODE String,
+    #  then calls run_gcode from printer module (not implemented in this demo)
+    # Inputs: takes string direction (X+, X-, Y+, Y-, Z+, or Z-)
+    #         values from window.read()
 
     # For debugging, uncomment to see if the direction (event) and values are being passed correctly
     # print("direction:", direction)
@@ -170,6 +181,33 @@ def run_relative(direction, values):
 
 
 # Define function start_experiment(event, values)
+def run_experiment(event, values):
+    """
+    Description: Runs experiment to take a picture, video, or preview (do nothing)
+    
+    Input: PySimpleGUI window event and values
+    """
+    print("run_experiment")
+    
+    # Get CSV Filename
+    csv_filename = values[OPEN_CSV_FILEBROWSE_KEY]
+    
+    # Get Path List from CSV
+    path_list = P.get_path_list_csv(csv_filename)
+    
+    # Get GCODE Location List from path_list
+    gcode_string_list = P.convert_list_to_gcode_strings(path_list)
+    
+    # Go into Absolute Positioning Mode
+    printer.run_gcode(C.ABSOLUTE_POS)
+    
+    # Use For Loop to go through each location
+    # TODO: Preview doesn't show preview camera
+    for location in gcode_string_list:
+        print(location)
+        printer.run_gcode(location)
+        time.sleep(5)
+    
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
 #    Use get_path_list_csv(csv_filename) and convert_list_to_gcode_strings(path_list) from prepare_experiment module
@@ -226,14 +264,19 @@ def main():
     # TODO: Create 3 Radio Buttons for Picture, Video, Preview (Default), and Prompt "Choose to take Pictures, Video, or only preview locations"
     # TODO: Create User Input for number of Trials (use placeholder)
     tab_1_layout = [ [sg.Text(OPEN_CSV_PROMPT), sg.Input(), sg.FileBrowse(key=OPEN_CSV_FILEBROWSE_KEY)],
-                     [sg.Button(START_EXPERIMENT)]
+                     [sg.Text(EXP_RADIO_PROMPT)],
+                     [sg.Radio(EXP_RADIO_PIC_TEXT, EXP_RADIO_GROUP, default=False, key=EXP_RADIO_PIC_KEY),
+                        sg.Radio(EXP_RADIO_VID_TEXT, EXP_RADIO_GROUP, default=False, key=EXP_RADIO_VID_KEY),
+                        sg.Radio(EXP_RADIO_PREVIEW_TEXT, EXP_RADIO_GROUP, default=True, key=EXP_RADIO_PREVIEW_KEY)],
+                     [sg.Button(START_EXPERIMENT, disabled=True), sg.Button(STOP_EXPERIMENT, disabled=True)]
                    ]
     
     # Tab 2: Movement Tab
     tab_2_layout = [ [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
                      [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
                         sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
-                        sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)],
+                        sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)
+                     ],
                      [sg.Text("", size=(5, 1)), sg.Button(Y_PLUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_MINUS, size=(5, 1))],
                      [sg.Button(X_MINUS, size=(10, 1)), sg.Button(X_PLUS, size=(10, 1))],
                      [sg.Text("", size=(5, 1)), sg.Button(Y_MINUS, size=(10, 1)), sg.Text("", size=(5, 1)), sg.Button(Z_PLUS, size=(5, 1))],
@@ -276,7 +319,9 @@ def main():
     
     # This for loop may cause problems if the camera feed dies, it will close everything?
     # Create experiment_run_counter
+    experiment_run_counter = 0
     # Create Boolean is_running_experiment, default False
+    is_running_experiment = False
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # while True:
         event, values = window.read(timeout=20)
@@ -296,19 +341,49 @@ def main():
         #       Increment experiment_run_counter
         #  else:
         #    Do nothing
-                
+        
+        # If is_running_experiment is True, increment experiment_run_counter, then run_experiment
+        if is_running_experiment == True:
+            experiment_run_counter += 1
+            run_experiment(event, values)
+        
+        # Check if CSV file Exists (length is 0 if CSV not loaded)
+        #  Enable "Start Experiment" if true, else disable "Start Experiment"
+        if len(values[OPEN_CSV_FILEBROWSE_KEY]) != 0:
+            # print("CSV File Exists")
+            # Enable "Start Experiment" button
+            window[START_EXPERIMENT].update(disabled=False)
+            # print("values[OPEN_CSV_FILEBROWSE_KEY]:", values[OPEN_CSV_FILEBROWSE_KEY])
+            # print(len(values[OPEN_CSV_FILEBROWSE_KEY]))
+        else:
+            # print("CSV File Does Not Exist")
+            # Disable "Start Experiment" button
+            window[START_EXPERIMENT].update(disabled=True)
+        
         if event == sg.WIN_CLOSED:
             break
         # Tab 1 (Experiment):
         elif event == START_EXPERIMENT:
+            print("You pressed Start Experiment")
+            experiment_run_counter = 0
+            is_running_experiment = True
             print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
             
             # set is_running_experiment to True
             # set experiment_run_counter to 0
             # Disable "Start Experiment" Button
+            window[START_EXPERIMENT].update(disabled=True)
             # Enable "Stop Experiment" Button
+            window[STOP_EXPERIMENT].update(disabled=False)
             
-            
+        elif event == STOP_EXPERIMENT or experiment_run_counter == MAX_NUMBER_EXPERIMENTAL_RUNS:
+            print("You pressed Stop Experiment or experiment_run_counter hit", MAX_NUMBER_EXPERIMENTAL_RUNS)
+            experiment_run_counter = 0
+            is_running_experiment = False
+            # Enable "Start Experiment" Button
+            window[START_EXPERIMENT].update(disabled=False)
+            # Disable "Stop Experiment" Button
+            window[STOP_EXPERIMENT].update(disabled=True)
         elif event == "Pic":
             print("You Pushed Pic Button")
             # Take a Picture

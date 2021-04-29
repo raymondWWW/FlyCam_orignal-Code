@@ -71,7 +71,7 @@ def initial_setup(path_list):
 
 
 def move_extruder_out_of_the_way(x, y, z):
-    WAIT_TIME = 5
+    WAIT_TIME = 1
     
     start_position_z = "G0Z{}".format(z)
     run_gcode(start_position_z)
