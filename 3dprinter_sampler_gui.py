@@ -44,6 +44,7 @@ import PySimpleGUI as sg
 import cv2
 import numpy as np
 import time
+import threading
 
 # Import modules
 import settings as C
@@ -181,7 +182,7 @@ def run_relative(direction, values):
 
 
 # Define function start_experiment(event, values)
-def run_experiment(event, values):
+def run_experiment(event, values, thread_event):
     """
     Description: Runs experiment to take a picture, video, or preview (do nothing)
     
@@ -201,12 +202,23 @@ def run_experiment(event, values):
     # Go into Absolute Positioning Mode
     printer.run_gcode(C.ABSOLUTE_POS)
     
-    # Use For Loop to go through each location
-    # TODO: Preview doesn't show preview camera
-    for location in gcode_string_list:
-        print(location)
-        printer.run_gcode(location)
-        time.sleep(5)
+    # Create While loop to check if thread_event is not set (closing)
+    count_run = 0
+    while not thread_event.isSet():
+        
+        # TODO: Put in the rest of the code for Pic, Video, Preview from 3dprinter_start_experiment or prepare_experiment
+        
+        print("Run #", count_run)
+        # Use For Loop to go through each location
+        # TODO: Preview doesn't show preview camera
+        for location in gcode_string_list:
+            # print(location)
+            printer.run_gcode(location)
+            time.sleep(5)
+        
+        count_run += 1
+    
+    print("Experiment Stopped")
     
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
@@ -355,7 +367,14 @@ def main():
     # Have Camera Feed Window
     # To the right, xy, and z
     # Below camera Feed: Show Current Location, Get Current Location Button
-
+    
+    # Threading Setup
+    # Initialize empty experiment_thread object, will be used with "Start Experiment" is pushed
+    experiment_thread = threading.Thread()
+    
+    # Initialize threading event (Allows you to stop the thread)
+    thread_event = threading.Event()
+    
 
     # Create window and show it without plot
     window = sg.Window("3D Printer GUI Test", layout, location=(800, 400))
@@ -378,44 +397,14 @@ def main():
         # Call Get Current Location Manager Function
         # Print Current Location
         
+        # TODO: Create new thread for Current Location display?
+        
         frame = frame.array
-        
-        # Create if statement checking if is_running_experiment
-        #  If is_running_experiment is true:
-        #    Check if event "Stop Experiment" was pressed or if experiment_run_counter hit threshold (use dummy placeholder)
-        #       If it was:
-        #           set is_running_experiment to False
-        #           print set experiment_run_counter (You ran x runs)
-        #           Enable "Start Experiment" Button
-        #           Disable "Stop Experiment" Button
-        #    If "Stop Experiment" button was NOT pressed
-        #       Call function start_experiment(event, values)
-        #       Increment experiment_run_counter
-        #  else:
-        #    Do nothing
-        
-        # ---- Run/Start Experiment If statement ----
-        # If is_running_experiment is True, increment experiment_run_counter, then run_experiment
-        if is_running_experiment == True:
-            experiment_run_counter += 1
-            run_experiment(event, values)
-            # TODO: Create a destination_list_of_dictionaries from CSV File. Will be used to compare with Current Location
-            # call function get_gcode_string_list(event, values)
-            # well_counter will be index for GCode String List
-            # run GCODE location at well_counter index
-            #   # TODO: Wait until arriving at location, then get sample
-            #   Temporary: Just wait a few seconds, then get sample
-            #   call function that decides to take picture, video, or preview based on radio buttons
-            #   Create well_number variable by adding 1 to well_counter
-            #   name function get_sample(folder_path_sample, well_number, values)
-            # Increment well_counter
-            # if well_counter hits last index of GCODE String List (length - 1), reset well_counter
-            
         
         # ---- CSV File Checker and "Start Experiment" Enable/Disable If/Else logic
         # Check if CSV file Exists (length is 0 if CSV not loaded)
         #  Enable "Start Experiment" if true, else disable "Start Experiment"
-        if len(values[OPEN_CSV_FILEBROWSE_KEY]) != 0:
+        if len(values[OPEN_CSV_FILEBROWSE_KEY]) != 0 and is_running_experiment == False:
             # print("CSV File Exists")
             # Enable "Start Experiment" button
             window[START_EXPERIMENT].update(disabled=False)
@@ -432,8 +421,6 @@ def main():
         # Tab 1 (Experiment):
         elif event == START_EXPERIMENT:
             print("You pressed Start Experiment")
-            # Reset experiment_run_counter and well_counter
-            experiment_run_counter = 0
             
             # Set is_running_experiment to True, we are now running an experiment
             is_running_experiment = True
@@ -446,16 +433,28 @@ def main():
             # Enable "Stop Experiment" Button
             window[STOP_EXPERIMENT].update(disabled=False)
             
+            # Create actual experiment_thread
+            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event,), daemon=True)
+            experiment_thread.start()
+            
             # Create Unique Folder, Get that Unique Folder's Name
             
-        elif event == STOP_EXPERIMENT or experiment_run_counter == MAX_NUMBER_EXPERIMENTAL_RUNS:
-            print("You pressed Stop Experiment or experiment_run_counter hit", MAX_NUMBER_EXPERIMENTAL_RUNS)
+        elif event == STOP_EXPERIMENT:
+            print("You pressed Stop Experiment")
+            print("Ending experiment after current run")
             experiment_run_counter = 0
             is_running_experiment = False
             # Enable "Start Experiment" Button
             window[START_EXPERIMENT].update(disabled=False)
             # Disable "Stop Experiment" Button
             window[STOP_EXPERIMENT].update(disabled=True)
+            
+            # Stop thread, set prepares stopping
+            thread_event.set()
+            
+            # Stop experiemnt_thread
+            experiment_thread.join(timeout=1)
+            
         elif event == "Pic":
             print("You Pushed Pic Button")
             # Take a Picture
