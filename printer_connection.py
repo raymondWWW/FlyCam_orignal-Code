@@ -104,9 +104,8 @@ def run_gcode(gcode_string):
     # Call the global printer variable
     global printer
     # Add new line character at the end of the string
-    gcode_string = gcode_string + "\n"
-
     print(gcode_string)
+    gcode_string = gcode_string + "\n"
 
     # Convert to Binary with UTF-8 encoding for string, write to serial
     # printer.write(bytes(gcode_string, "utf-8"))

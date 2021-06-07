@@ -29,6 +29,8 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+06 Jun 2021: Can take pictures in Experiment Thread. No video yet.
+05 Jun 2021: Added in Experiment Thread, can now run GUI and Experiment at the same time.
 28 Apr 2021: Changed Experiment variables into CONSTANTS
 26 Apr 2021: Added in 2 Tabs: Start Experiment and Movement
 18 Apr 2021: Started Changelog, Allow user to input their own GCode.
@@ -182,12 +184,13 @@ def run_relative(direction, values):
 
 
 # Define function start_experiment(event, values)
-def run_experiment(event, values, thread_event):
+def run_experiment(event, values, thread_event, camera):
     """
     Description: Runs experiment to take a picture, video, or preview (do nothing)
     
     Input: PySimpleGUI window event and values
     """
+    # global camera
     print("run_experiment")
     
     # Get CSV Filename
@@ -202,23 +205,59 @@ def run_experiment(event, values, thread_event):
     # Go into Absolute Positioning Mode
     printer.run_gcode(C.ABSOLUTE_POS)
     
+    # Create New Folder If not in "Preview" Mode
+    if values[EXP_RADIO_PREVIEW_KEY] == False:
+        folder_path = P.create_and_get_folder_path()
+        print("Not in Preview Mode, creating folder:", folder_path)
+    
     # Create While loop to check if thread_event is not set (closing)
     count_run = 0
     while not thread_event.isSet():
         
         # TODO: Put in the rest of the code for Pic, Video, Preview from 3dprinter_start_experiment or prepare_experiment
-        
+        print("=========================")
         print("Run #", count_run)
-        # Use For Loop to go through each location
-        # TODO: Preview doesn't show preview camera
+        
+        well_number = 1
         for location in gcode_string_list:
-            # print(location)
+            # print(gcode_string)
             printer.run_gcode(location)
-            time.sleep(5)
+            print("Going to Well Number:", well_number)
+            time.sleep(4)
+            if values[EXP_RADIO_PREVIEW_KEY] == True:
+                print("Preview Mode is On, only showing preview camera \n")
+                # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+                # time.sleep(5)
+                
+                # camera.stop_preview()
+            elif values[EXP_RADIO_VID_KEY] == True:
+                print("Recording Video Footage")
+                file_full_path = P.get_file_full_path(folder_path, well_number)
+                # TODO: Change to Video Captures
+                # camera.capture(file_full_path)
+            elif values[EXP_RADIO_PIC_KEY] == True:
+                print("Taking Pictures Only")
+                file_full_path = P.get_file_full_path(folder_path, well_number)
+                print(file_full_path)
+                # TODO: Create Function to change and and change back Camera Settings
+                camera.capture(file_full_path)
+                # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+            well_number += 1
         
         count_run += 1
-    
+        
+        # Use For Loop to go through each location
+        # TODO: Preview doesn't show preview camera
+        # Original
+        # for location in gcode_string_list:
+            # # print(location)
+            # printer.run_gcode(location)
+            # time.sleep(5)
+        
+        
+    print("=========================")
     print("Experiment Stopped")
+    print("=========================")
     
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
@@ -307,6 +346,12 @@ def main():
     csv_filename = "testing/file2.csv"
     path_list = printer.get_path_list_csv(csv_filename)
     printer.initial_setup(path_list)
+    
+    # Move Extruder Out Of The Way
+    x_start = 0
+    y_start = C.Y_MAX
+    z_start = 50
+    printer.move_extruder_out_of_the_way(x_start, y_start, z_start)
 
     sg.theme("LightGreen")
 
@@ -392,7 +437,7 @@ def main():
     # **** Note: This for loop may cause problems if the camera feed dies, it will close everything? ****
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # while True:
-        event, values = window.read(timeout=20)
+        event, values = window.read(timeout=1)
         
         # Call Get Current Location Manager Function
         # Print Current Location
@@ -434,7 +479,7 @@ def main():
             window[STOP_EXPERIMENT].update(disabled=False)
             
             # Create actual experiment_thread
-            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event,), daemon=True)
+            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera,), daemon=True)
             experiment_thread.start()
             
             # Create Unique Folder, Get that Unique Folder's Name
