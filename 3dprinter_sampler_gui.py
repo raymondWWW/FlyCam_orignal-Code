@@ -29,7 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
-06 Jun 2021: Can take pictures in Experiment Thread. No video yet.
+06 Jun 2021: Can take pictures in Experiment Thread. No video yet. Can't change resolution, bugs out. Buffer issue?
 05 Jun 2021: Added in Experiment Thread, can now run GUI and Experiment at the same time.
 28 Apr 2021: Changed Experiment variables into CONSTANTS
 26 Apr 2021: Added in 2 Tabs: Start Experiment and Movement
@@ -176,10 +176,6 @@ def run_relative(direction, values):
 #  Flush, run M114, set serial data, check, make it run twice
 #   if location not found, run again?
 
-
-# TODO: Check how image capture works with GUI
-
-
 # TODO: Include picamera settings
 
 
@@ -238,8 +234,7 @@ def run_experiment(event, values, thread_event, camera):
             elif values[EXP_RADIO_PIC_KEY] == True:
                 print("Taking Pictures Only")
                 file_full_path = P.get_file_full_path(folder_path, well_number)
-                print(file_full_path)
-                # TODO: Create Function to change and and change back Camera Settings
+                # print(file_full_path)
                 camera.capture(file_full_path)
                 # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
             well_number += 1
@@ -535,9 +530,21 @@ def main():
             window.FindElement("-GCODE_INPUT-").Update("")
 
         
+        
+        # Print frame size (see if you can resize it)
+        print("frame shape:", frame.shape)
+        height, width, channel = frame.shape
+        
+        # Resize attempt
+        image = cv2.resize(frame, (640, 480))
+        
         # print("You entered ", values[0])
+        
+        # New
+        imgbytes = cv2.imencode('.png', image)[1].tobytes()
+        
         # Original
-        imgbytes = cv2.imencode('.png', frame)[1].tobytes()
+        # imgbytes = cv2.imencode('.png', frame)[1].tobytes()
         
         # Update GUI Window with new image
         window['-IMAGE-'].update(data=imgbytes)
