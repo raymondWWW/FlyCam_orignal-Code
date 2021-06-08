@@ -530,21 +530,10 @@ def main():
             window.FindElement("-GCODE_INPUT-").Update("")
 
         
-        
-        # Print frame size (see if you can resize it)
-        print("frame shape:", frame.shape)
-        height, width, channel = frame.shape
-        
-        # Resize attempt
-        image = cv2.resize(frame, (640, 480))
-        
         # print("You entered ", values[0])
         
-        # New
-        imgbytes = cv2.imencode('.png', image)[1].tobytes()
-        
         # Original
-        # imgbytes = cv2.imencode('.png', frame)[1].tobytes()
+        imgbytes = cv2.imencode('.png', frame)[1].tobytes()
         
         # Update GUI Window with new image
         window['-IMAGE-'].update(data=imgbytes)
