@@ -100,7 +100,7 @@ WINDOW_GUI_TIMEOUT = 1 # in ms
 
 # ---- EXPERIMENT CONSTANTS ----
 IS_TAKING_PICTURE = False
-
+IS_RUNNING_EXPERIMENT = False
 
 
 
@@ -193,7 +193,7 @@ def run_experiment(event, values, thread_event, camera):
     Input: PySimpleGUI window event and values
     """
     # global camera
-    global IS_TAKING_PICTURE
+    global IS_TAKING_PICTURE, IS_RUNNING_EXPERIMENT
     
     
     print("run_experiment")
@@ -214,6 +214,13 @@ def run_experiment(event, values, thread_event, camera):
     # Create While loop to check if thread_event is not set (closing)
     count_run = 0
     while not thread_event.isSet():
+        
+        # Not implemented yet
+        # if IS_RUNNING_EXPERIMENT == False:
+            # # Not running experiment, go into holding pattern
+            # print("No Experiment Going On...")
+            # time.sleep(1)
+            # continue
         
         # TODO: Put in the rest of the code for Pic, Video, Preview from 3dprinter_start_experiment or prepare_experiment
         print("=========================")
@@ -247,7 +254,6 @@ def run_experiment(event, values, thread_event, camera):
                 # camera.resolution = (640, 480)
                 take_picture(camera, file_full_path)
                 IS_TAKING_PICTURE = False
-                print("Done Taking Picture")
                 # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
             well_number += 1
         
@@ -256,6 +262,12 @@ def run_experiment(event, values, thread_event, camera):
     print("=========================")
     print("Experiment Stopped")
     print("=========================")
+    # Move Extruder Out of the Way
+    x = 0
+    y = 200
+    z = 60
+    printer.move_extruder_out_of_the_way(x, y, z)
+    # End of run_experiment() function
     
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
@@ -316,8 +328,8 @@ def reset_camera_settings(camera):
     # Other Camera Settings Stay The Same, For Now
     pass
 
-# Define function get_gcode_string_list(values)
 
+# Define function get_gcode_string_list(values)
 def get_gcode_string_list(values):
     """
     Description: Takes CSV File from values (GUI Data), returns gcode_string_list
@@ -459,7 +471,7 @@ def get_folder_path_sample(values):
 # define main function
 def main():
     
-    global IS_TAKING_PICTURE
+    global IS_TAKING_PICTURE, IS_RUNNING_EXPERIMENT
     
     # Setup Camera
     # initialize the camera and grab a reference to the raw camera capture
@@ -642,7 +654,7 @@ def main():
             
             # Set is_running_experiment to True, we are now running an experiment
             is_running_experiment = True
-            
+            IS_RUNNING_EXPERIMENT = True
             # Reset experiment_run_counter
             # experiment_run_counter = 0
             
@@ -658,6 +670,7 @@ def main():
             experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera,), daemon=True)
             experiment_thread.start()
             
+            
             # Create Unique Folder, Get that Unique Folder's Name
             # folder_path_sample = get_folder_path_sample(values)
             
@@ -666,6 +679,7 @@ def main():
             print("Ending experiment after current run")
             experiment_run_counter = 0
             is_running_experiment = False
+            IS_RUNNING_EXPERIMENT = False
             # Enable "Start Experiment" Button
             window[START_EXPERIMENT].update(disabled=False)
             # Disable "Stop Experiment" Button
