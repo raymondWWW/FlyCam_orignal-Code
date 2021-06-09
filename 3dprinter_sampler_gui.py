@@ -29,6 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+09 Jun 2021: Can take consistent pictures (camera settings changed). Pause video stream while taking photo (prevents camera buffer issue).
 06 Jun 2021: Can take pictures in Experiment Thread. No video yet. Can't change resolution, bugs out. Buffer issue?
 05 Jun 2021: Added in Experiment Thread, can now run GUI and Experiment at the same time.
 28 Apr 2021: Changed Experiment variables into CONSTANTS
@@ -94,8 +95,13 @@ Y_MINUS = "Y-"
 Z_PLUS = "Z+"
 Z_MINUS = "Z-"
 # WINDOW_GUI_TIMEOUT
-WINDOW_GUI_TIMEOUT = 10 # in ms
+WINDOW_GUI_TIMEOUT = 1 # in ms
 # TODO: Put in Constants for GCODE Input
+
+# ---- EXPERIMENT CONSTANTS ----
+IS_TAKING_PICTURE = False
+
+
 
 
 # ==== USER DEFINED FUNCTIONS =====
@@ -187,24 +193,23 @@ def run_experiment(event, values, thread_event, camera):
     Input: PySimpleGUI window event and values
     """
     # global camera
+    global IS_TAKING_PICTURE
+    
+    
     print("run_experiment")
     
-    # Get CSV Filename
-    csv_filename = values[OPEN_CSV_FILEBROWSE_KEY]
-    
-    # Get Path List from CSV
-    path_list = P.get_path_list_csv(csv_filename)
-    
     # Get GCODE Location List from path_list
-    gcode_string_list = P.convert_list_to_gcode_strings(path_list)
+    gcode_string_list = get_gcode_string_list(values)
     
     # Go into Absolute Positioning Mode
     printer.run_gcode(C.ABSOLUTE_POS)
     
     # Create New Folder If not in "Preview" Mode
-    if values[EXP_RADIO_PREVIEW_KEY] == False:
-        folder_path = P.create_and_get_folder_path()
-        print("Not in Preview Mode, creating folder:", folder_path)
+    # if values[EXP_RADIO_PREVIEW_KEY] == False:
+        # folder_path = P.create_and_get_folder_path()
+        # print("Not in Preview Mode, creating folder:", folder_path)
+    
+    folder_path = get_folder_path_sample(values)
     
     # Create While loop to check if thread_event is not set (closing)
     count_run = 0
@@ -232,23 +237,21 @@ def run_experiment(event, values, thread_event, camera):
                 # TODO: Change to Video Captures
                 # camera.capture(file_full_path)
             elif values[EXP_RADIO_PIC_KEY] == True:
+                IS_TAKING_PICTURE = True
+                time.sleep(1)
                 print("Taking Pictures Only")
                 file_full_path = P.get_file_full_path(folder_path, well_number)
-                # print(file_full_path)
-                camera.capture(file_full_path)
+                print(file_full_path)
+                # camera.resolution = (2592, 1944)
+                # camera.capture(file_full_path)
+                # camera.resolution = (640, 480)
+                take_picture(camera, file_full_path)
+                IS_TAKING_PICTURE = False
+                print("Done Taking Picture")
                 # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
             well_number += 1
         
         count_run += 1
-        
-        # Use For Loop to go through each location
-        # TODO: Preview doesn't show preview camera
-        # Original
-        # for location in gcode_string_list:
-            # # print(location)
-            # printer.run_gcode(location)
-            # time.sleep(5)
-        
         
     print("=========================")
     print("Experiment Stopped")
@@ -268,6 +271,50 @@ def run_experiment(event, values, thread_event, camera):
 #       Recommend number of runs first, then implement countdown algorithm?
 # TODO: Test picture/video capabilities while camera feed is running. Update, picture works
 
+def take_picture(camera, file_full_path):
+    change_camera_settings(camera)
+    print("START Taking Picture")
+    camera.capture(file_full_path)
+    print("DONE Taking Picture")
+    reset_camera_settings(camera)
+    pass
+
+
+
+def change_camera_settings(camera):
+    
+    # Change Camera Resolution
+    width = 2592
+    height = 1944
+    camera.resolution = (width, height)
+    
+    # Turn Off Auto White Balance
+    camera.awb_mode = "off"
+    
+    # Change red/blue gains
+    red_gain = 1.3
+    blue_gain = 1.598
+    camera.awb_gains = (red_gain, blue_gain)
+    
+    # Change Camera ISO (Exposure)
+    # 100-200 (daytime), 400-800 (low light)
+    camera.iso = 168
+    
+    # Turn off Camera LED
+    camera.led = False
+    
+    pass
+
+
+def reset_camera_settings(camera):
+    
+    # Change Camera Resolution Back
+    width = 640
+    height = 480
+    camera.resolution = (width, height)
+    
+    # Other Camera Settings Stay The Same, For Now
+    pass
 
 # Define function get_gcode_string_list(values)
 
@@ -287,36 +334,133 @@ def get_gcode_string_list(values):
     gcode_string_list = P.convert_list_to_gcode_strings(path_list)
     
     # Return gcode_string_list
+    return gcode_string_list
+
+
+# Define function, get_folder_path_sample(values)
+def get_folder_path_sample(values):
     
-    pass
+    folder_path_sample = ""
+    # Create New Folder If not in "Preview" Mode
+    if values[EXP_RADIO_PREVIEW_KEY] == False:
+        folder_path_sample = P.create_and_get_folder_path()
+        print("Not in Preview Mode, creating folder:", folder_path_sample)
+    
+    return folder_path_sample
+
+
+# Define function, do_single_cycle()
+#  Takes pictures of all wells once
 
 
 # Define function, get_sample(folder_path_sample, values)
 
-def get_sample(folder_path_sample, well_number, values):
-    """
-    Description: Takes Pic/Vid/Preview Radio Values, then takes a
-                 picture, video, or preview (do nothing), stores into
-                 folder_path_sample
-    Inputs:
-      - values, a dictionary from PySimpleGUI Window Reads. The main focus are the Radio values for the Pic/Vid/Preview.
-      - folder_path_sample, a string holding the unique folder path for the samples (prevents accidental overwrite)
-    Return/Output: Doesn't return anything. TODO: Return True/False if failed or successful?
-    """
+# def do_single_cycle(camera, folder_path_sample, values):
+    # """
+    # Description: Takes Pic/Vid/Preview Radio Values, then takes a
+                 # picture, video, or preview (do nothing), stores into
+                 # folder_path_sample
+    # Inputs:
+      # - values, a dictionary from PySimpleGUI Window Reads. The main focus are the Radio values for the Pic/Vid/Preview.
+      # - folder_path_sample, a string holding the unique folder path for the samples (prevents accidental overwrite)
+    # Return/Output: Doesn't return anything. TODO: Return True/False if failed or successful?
+    # """
     
-    # Create Unique Filename, call get_file_full_path(folder_path, well_number)
-    # Check Experiment Radio Buttons
-    #  If Picture is True, take a picture. Save with unique filename
-    #  If Video is True, take a video. Save with unique filename
-    #  If Preview is True, do nothing or print "Preview Mode"
     
-    pass
+    # # Get gcode_string_list
+    # gcode_string_list = get_gcode_string_list(values)
     
+    # # Create Unique Filename, call get_file_full_path(folder_path, well_number)
+    # # Check Experiment Radio Buttons
+    # #  If Picture is True, take a picture. Save with unique filename
+    # #  If Video is True, take a video. Save with unique filename
+    # #  If Preview is True, do nothing or print "Preview Mode"
+    # well_number = 1
+    # for location in gcode_string_list:
+        # # print(gcode_string)
+        # printer.run_gcode(location)
+        # print("Going to Well Number:", well_number)
+        # time.sleep(4)
+        # if values[EXP_RADIO_PREVIEW_KEY] == True:
+            # print("Preview Mode is On, only showing preview camera \n")
+            # # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+            # # time.sleep(5)
+            
+            # # camera.stop_preview()
+        # elif values[EXP_RADIO_VID_KEY] == True:
+            # print("Recording Video Footage")
+            # file_full_path = P.get_file_full_path(folder_path_sample, well_number)
+            # # TODO: Change to Video Captures
+            # # camera.capture(file_full_path)
+        # elif values[EXP_RADIO_PIC_KEY] == True:
+            # print("Taking Pictures Only")
+            # file_full_path = P.get_file_full_path(folder_path_sample, well_number)
+            # print(file_full_path)
+            # camera.capture(file_full_path)
+            # # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+        # well_number += 1
+    
+    # pass
+    
+
+
+# define function, get_single_well(folder_path_sample, well_number, camera, values)
+# def get_single_well(folder_path_sample, well_number, camera, values):
+    
+    # # Get location using well_number and gcode_string_list
+    # # Get gcode_string_list
+    # gcode_string_list = get_gcode_string_list(values)
+    
+    # # Subtract 1 since well_number does not start at zero
+    # index = well_number - 1
+    # location = gcode_string_list[index]
+    # printer.run_gcode(location)
+    # print("Going to Well Number:", well_number)
+    # time.sleep(4)
+    # if values[EXP_RADIO_PREVIEW_KEY] == True:
+        # print("Preview Mode is On, only showing preview camera \n")
+        # # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+        # # time.sleep(5)
+        
+        # # camera.stop_preview()
+    # elif values[EXP_RADIO_VID_KEY] == True:
+        # print("Recording Video Footage")
+        # file_full_path = P.get_file_full_path(folder_path_sample, well_number)
+        # # TODO: Change to Video Captures
+        # # camera.capture(file_full_path)
+    # elif values[EXP_RADIO_PIC_KEY] == True:
+        # print("Taking Pictures Only")
+        # file_full_path = P.get_file_full_path(folder_path_sample, well_number)
+        # print(file_full_path)
+        # camera.capture(file_full_path)
+        # # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+    # well_number = change_well_number(values, well_number)
+    # return well_number
+    
+
+
+# Define function that resets well_number if length of gcode_string_list is the well_number
+# def change_well_number(values, well_number):
+    
+    # # Get gcode_string_list
+    # gcode_string_list = get_gcode_string_list(values)
+    
+    
+    # if well_number >= len(gcode_string_list):
+        # print("All wells done, reseting well number")
+        # well_number = 1
+    # else:
+        # print("Incrementing Well Number")
+        # well_number += 1
+    
+    # return well_number
 
 
 # define main function
 def main():
-
+    
+    global IS_TAKING_PICTURE
+    
     # Setup Camera
     # initialize the camera and grab a reference to the raw camera capture
     camera = PiCamera()
@@ -421,25 +565,59 @@ def main():
     
     
     # Create experiment_run_counter
-    experiment_run_counter = 0
+    # experiment_run_counter = 0
     # Create Boolean is_running_experiment, default False
     is_running_experiment = False
     # Initialize well_counter to 0 (used for running experiment, going through GCode location list)
+    # well_number = 1
     
     # Initialize current_location_dictionary to X=0, Y=0, Z=0
     
+    
+    
     # Initialize folder_path_sample to "" ("Start Experiment" will create unique folder name)
+    folder_path_sample = ""
+    
+    # _____________________________________________
+    #   MAIN GUI LOOP
+    # _____________________________________________
+    
     # **** Note: This for loop may cause problems if the camera feed dies, it will close everything? ****
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # while True:
-        event, values = window.read(timeout=1)
+        event, values = window.read(timeout=WINDOW_GUI_TIMEOUT)
         
         # Call Get Current Location Manager Function
         # Print Current Location
         
         # TODO: Create new thread for Current Location display?
         
-        frame = frame.array
+        # Grab numpy array from frame
+        image = frame.array
+        
+        
+        
+        if IS_TAKING_PICTURE == True:
+            print("PAUSING VIDEO STREAM")
+            while IS_TAKING_PICTURE == True:
+                # print("IS_TAKING_PICTURE:", IS_TAKING_PICTURE)
+                time.sleep(1)
+            print("RESUMING VIDEO STREAM")
+        else:
+            pass
+        
+        # Check if Experiment is running
+        # if is_running_experiment == True:
+            # # print("Experiment is Running")
+            # print("Run #", experiment_run_counter)
+            
+            # # do_single_cycle(camera, folder_path_sample, values)
+            # well_number = get_single_well(folder_path_sample, well_number, camera, values)
+            
+            # # Increment experiment_run_counter
+            # experiment_run_counter += 1
+            # pass
+        
         
         # ---- CSV File Checker and "Start Experiment" Enable/Disable If/Else logic
         # Check if CSV file Exists (length is 0 if CSV not loaded)
@@ -465,6 +643,9 @@ def main():
             # Set is_running_experiment to True, we are now running an experiment
             is_running_experiment = True
             
+            # Reset experiment_run_counter
+            # experiment_run_counter = 0
+            
             # Uncomment to see your CSV File (is it the correct path?)
             # print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
             
@@ -478,6 +659,7 @@ def main():
             experiment_thread.start()
             
             # Create Unique Folder, Get that Unique Folder's Name
+            # folder_path_sample = get_folder_path_sample(values)
             
         elif event == STOP_EXPERIMENT:
             print("You pressed Stop Experiment")
@@ -533,7 +715,7 @@ def main():
         # print("You entered ", values[0])
         
         # Original
-        imgbytes = cv2.imencode('.png', frame)[1].tobytes()
+        imgbytes = cv2.imencode('.png', image)[1].tobytes()
         
         # Update GUI Window with new image
         window['-IMAGE-'].update(data=imgbytes)
