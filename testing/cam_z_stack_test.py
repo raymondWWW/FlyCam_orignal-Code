@@ -20,13 +20,26 @@ Optional:
 -Create function to convert float x/y/z to GCODE, and send GCODE.
 """
 
-# Define function that runs GUI for Z Stack Creation
-
-
-
+import PySimpleGUI as sg
 
 
 def main():
+
+    # Setup GUI Layout
+
+    # Layout contents:
+    #   Text that says unit is in mm
+    #   Text boxes for in z_start, z_end, z_increment
+    #   Folder Selection of where to save folder
+    #   Button to "Create Z Stack"
+
+    layout_z_stack = [ [sg.Text("Units are in mm")]]
+
+
+
+    # Initiliaze GUI Window
+
+    # Run forever while loop to start GUI
     pass
 
 
