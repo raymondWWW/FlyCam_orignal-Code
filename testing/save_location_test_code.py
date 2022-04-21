@@ -11,5 +11,14 @@ Version 2: Display CSV file that allows you to add and delete rows.
 
 Code Sources:
 https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Table_CSV.py
+https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Table_Simulation.py
 
 """
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
