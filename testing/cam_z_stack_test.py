@@ -27,8 +27,10 @@ https://tutorialdeep.com/knowhow/round-float-to-2-decimal-places-python/
 """
 
 import numpy as np
+import os
 import PySimpleGUI as sg
 
+from datetime import datetime
 
 # ===== GUI CONSTANTS =====
 
@@ -47,6 +49,12 @@ def create_z_stack(z_start, z_end, z_increment, save_folder_location):
     # Assumes all inputs are floating or integers, no letters!
     print("create_z_stack")
 
+    # GCODE Position, goes fastest
+    position = "G0"
+
+    # Go into Absolute Mode, "G90"
+    # Run GCODE to go into Absolute Mode
+
     # Will use absolute location mode to go to each z
     # Alternative, you could use relative and get current location to get z value.
     # Test: Use Get Current Location to compare expected vs actual z.
@@ -58,15 +66,21 @@ def create_z_stack(z_start, z_end, z_increment, save_folder_location):
     # Mark where we think z_focus is?
 
     for z in np.arange(z_start, z_end, z_increment):
-        print(z)
+        print(f"z: {z}")
         # Make sure number gets rounded to 2 decimal places (ex: 25.23)
 
         # Round z to 2 decimal places
         z_rounded = round(z, 2)
 
         # Convert z to GCODE
+        # GCODE Format: G0Z2.34
+        gcode_str = f"{position}Z{z_rounded}"
 
-        # Go to z location
+        print(f"gcode_str: {gcode_str}")
+
+        # Go to z location using printer_connection module's run_gcode
+        # Possible bug, could this module be used elsewhere? This code may have to run in the same location as the GUI.
+
 
         # Take Picture and save to folder location
 
@@ -76,6 +90,35 @@ def create_z_stack(z_start, z_end, z_increment, save_folder_location):
     #     print(z)
 
     pass
+
+
+def create_and_get_folder_path():
+    # Get Folder Path
+    folder_path = "{}{}".format(C.FOLDERPATH, C.FOLDERNAME_PREFIX)
+    # print(folder_path)
+    current_time = datetime.now()
+    folder_name_suffix = current_time.strftime("%Y-%m-%d_%H%M%S")
+    # print(folder_name_suffix)
+
+    folder_path_complete = ""
+
+    # Check if folder exists, if not, create it
+    if not os.path.isdir(folder_path_complete):
+        print("Folder Does NOT exist! Making New Folder")
+        os.mkdir(folder_path_complete)
+    else:
+        print("Folder Exists")
+
+    # Return Folder Path
+    return folder_path_complete
+
+
+# Define function to create unique text string using date and time.
+def get_unique_id():
+    current_time = datetime.now()
+    unique_id = current_time.strftime("%Y-%m-%d_%H%M%S")
+    # print(f"unique_id: {unique_id}")
+    return unique_id
 
 
 # Define function to check an InputText key for digits only
@@ -129,7 +172,7 @@ def main():
             z_inc = float(values[Z_INC_KEY])
             save_folder_location = values[SAVE_FOLDER_KEY]
             print(f"save_folder_location: {save_folder_location}")
-            # create_z_stack(z_start, z_end, z_inc)
+            create_z_stack(z_start, z_end, z_inc, save_folder_location)
             # create_z_stack(1.1, 5.2, 0.2)
     pass
 
