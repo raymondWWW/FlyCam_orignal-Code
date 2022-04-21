@@ -18,9 +18,74 @@ Algorithm:
 
 Optional:
 -Create function to convert float x/y/z to GCODE, and send GCODE.
+
+
+Code Sources:
+https://www.guru99.com/python-range-function.html
+https://tutorialdeep.com/knowhow/round-float-to-2-decimal-places-python/
+
 """
 
+import numpy as np
 import PySimpleGUI as sg
+
+
+# ===== GUI CONSTANTS =====
+
+# INPUT Z STACK PARAMETERS Keys
+Z_START_KEY = "-Z_START_KEY-"
+Z_END_KEY = "-Z_END_KEY-"
+Z_INC_KEY = "-Z_INC_KEY-"
+
+SAVE_FOLDER_KEY = "-SAVE_FOLDER_KEY-"
+
+# Button Text
+START_Z_STACK_CREATION_TEXT = "Start Z Stack Creation"
+
+
+def create_z_stack(z_start, z_end, z_increment, save_folder_location):
+    # Assumes all inputs are floating or integers, no letters!
+    print("create_z_stack")
+
+    # Will use absolute location mode to go to each z
+    # Alternative, you could use relative and get current location to get z value.
+    # Test: Use Get Current Location to compare expected vs actual z.
+
+    # Create Unique folder to save into save_folder_location
+
+    # Go to first location, wait x seconds?
+
+    # Mark where we think z_focus is?
+
+    for z in np.arange(z_start, z_end, z_increment):
+        print(z)
+        # Make sure number gets rounded to 2 decimal places (ex: 25.23)
+
+        # Round z to 2 decimal places
+        z_rounded = round(z, 2)
+
+        # Convert z to GCODE
+
+        # Go to z location
+
+        # Take Picture and save to folder location
+
+        # Wait x seconds to get to location
+
+    # for z in range(z_start, z_end, z_increment):
+    #     print(z)
+
+    pass
+
+
+# Define function to check an InputText key for digits only
+# TODO: Allow floating numbers and a single period only. Periods are allowed at the beginning and end.
+def check_for_digits_in_key(key_str, window, event, values):
+
+    if event == key_str and len(values[key_str]) and values[key_str][-1] not in ('0123456789'):
+        # delete last char from input
+        # print("Found a letter instead of a number")
+        window[key_str].update(values[key_str][:-1])
 
 
 def main():
@@ -33,13 +98,39 @@ def main():
     #   Folder Selection of where to save folder
     #   Button to "Create Z Stack"
 
-    layout_z_stack = [ [sg.Text("Units are in mm")]]
-
-
+    layout = [ [sg.Text("Input Z Stack Parameters (Units are in mm):")],
+               [sg.Text("Z Start:"), sg.InputText("0", size=(7, 1), enable_events=True, key=Z_START_KEY),
+                sg.Text("Z End:"),sg.InputText("2", size=(7, 1), enable_events=True, key=Z_END_KEY),
+                sg.Text("Z Inc:"),sg.InputText("0.5", size=(7, 1), enable_events=True, key=Z_INC_KEY)],
+               [sg.Text("Save Folder Location:"), sg.In(size=(25,1), enable_events=True, key=SAVE_FOLDER_KEY), sg.FolderBrowse()],
+               [sg.Button(START_Z_STACK_CREATION_TEXT)]
+               ]
 
     # Initiliaze GUI Window
+    window = sg.Window("Z Stack Test", layout, location=(100, 100))
 
     # Run forever while loop to start GUI
+    while True:
+        # Read event and values from window (needed for GUI interaction)
+        event, values = window.read(timeout=1)
+
+        # Only allow digits for camera rotation
+        # How to allow float numbers or single periods only?
+
+
+        # ---- Main GUI Window If/elif chain ----
+        if event == sg.WIN_CLOSED:
+            print("Closing GUI")
+            break
+        elif event == START_Z_STACK_CREATION_TEXT:
+            print(f"You pressed button: {START_Z_STACK_CREATION_TEXT}")
+            z_start = float(values[Z_START_KEY])
+            z_end = float(values[Z_END_KEY])
+            z_inc = float(values[Z_INC_KEY])
+            save_folder_location = values[SAVE_FOLDER_KEY]
+            print(f"save_folder_location: {save_folder_location}")
+            # create_z_stack(z_start, z_end, z_inc)
+            # create_z_stack(1.1, 5.2, 0.2)
     pass
 
 
