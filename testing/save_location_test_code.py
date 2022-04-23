@@ -8,24 +8,89 @@ Version 1: Push a button to save to an existing CSV file
 
 Version 2: Display CSV file that allows you to add and delete rows.
 
+Ideas:
+-Display "rows" in multiline thing, then save as? (What about random crashes?)
+-User can only click on button if file is selected or filename is created?
+  -Or when clicking it, it asks user to save file? then will update it?
+-Create temp file first, then ask user to save? After saving, delete temp file?
+
 
 Code Sources:
 https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Table_CSV.py
 https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Table_Simulation.py
+https://www.geeksforgeeks.org/python-save-list-to-csv/
 
+https://www.reddit.com/r/PySimpleGUI/comments/f62gv5/filebrowse_and_filesaveas_buttons_conflicting/
+https://stackoverflow.com/questions/61228435/make-a-textbox-in-pysimplegui
 """
+
+import csv
+import PySimpleGUI as sg
+
+
+# GUI Constants
+
+SAVE_LOC_BUTTON = "Save Loc Button"
+
+
+# Dummy Get Current Location, sends a dictionary, simulation M114 parsing function I have.
+def get_current_location():
+    result = {"X": 1.1, "Y": 2.0, "Z": 3.2}
+    # Should always send in x, y, z order
+    return result
+
+
+# Save current location
+# Alt: Save to List instead, then have "Save" button?
+# Ask user to choose file name and location first?
+# Can only save loc if filename is chosen?
+def save_current_location():
+    print("save_current_location")
+    cur_loc_dict = get_current_location()
+    print(f"cur_loc_dict: {cur_loc_dict}")
+
+    # Make newline be blank, prevents extra empty lines from happening
+    f = open("loc_new.csv", 'w', newline="")
+    writer = csv.writer(f)
+
+    # Possible to check for headers row?
+    headers = ["X", "Y", "Z"]
+    row = []
+
+    for key, value in cur_loc_dict.items():
+        print(key, value)
+        row.append(value)
+
+    print(row)
+
+    writer.writerow(headers)
+    writer.writerow(row)
+
+    f.close()
+    print("File Saved?")
 
 
 def main():
 
     # Set up GUI Layout (A single button)
+    layout = [[sg.Button(SAVE_LOC_BUTTON)]]
 
     # Setup window
+    window = sg.Window("Save Location Test", layout, location=(100, 100))
 
     # Setup text file (hardcoded for now), save as CSV or use CSV library
     # Probably make it a constant, or create on GUI start?
 
     # Start forever while loop for GUI
+    while True:
+
+        event, values = window.read(timeout=1)
+
+        if event == sg.WIN_CLOSED:
+            break
+        elif event == SAVE_LOC_BUTTON:
+            print(f"You pressed: {SAVE_LOC_BUTTON}")
+            save_current_location()
 
     #  Have if statement for closing GUI
 
