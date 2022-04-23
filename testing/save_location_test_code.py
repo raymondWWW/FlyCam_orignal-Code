@@ -13,7 +13,7 @@ Ideas:
 -User can only click on button if file is selected or filename is created?
   -Or when clicking it, it asks user to save file? then will update it?
 -Create temp file first, then ask user to save? After saving, delete temp file?
-
+-Create unique temp file at start?
 
 Code Sources:
 https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Table_CSV.py
@@ -22,9 +22,11 @@ https://www.geeksforgeeks.org/python-save-list-to-csv/
 
 https://www.reddit.com/r/PySimpleGUI/comments/f62gv5/filebrowse_and_filesaveas_buttons_conflicting/
 https://stackoverflow.com/questions/61228435/make-a-textbox-in-pysimplegui
+https://stackoverflow.com/questions/40193388/how-to-check-if-a-csv-has-a-header-using-python
 """
 
 import csv
+import os
 import PySimpleGUI as sg
 
 
@@ -32,6 +34,10 @@ import PySimpleGUI as sg
 
 SAVE_LOC_BUTTON = "Save Loc Button"
 
+# Create Temp file to store locations into
+TEMP_FOLDER = r"D:\Projects\3dprinter_sampling\temp"
+TEMP_FILE = r"temp_loc.csv"
+TEMP_FULL_PATH = os.path.join(TEMP_FOLDER, TEMP_FILE)
 
 # Dummy Get Current Location, sends a dictionary, simulation M114 parsing function I have.
 def get_current_location():
@@ -50,11 +56,11 @@ def save_current_location():
     print(f"cur_loc_dict: {cur_loc_dict}")
 
     # Make newline be blank, prevents extra empty lines from happening
-    f = open("loc_new.csv", 'w', newline="")
+    f = open(TEMP_FULL_PATH, 'a', newline="")
     writer = csv.writer(f)
 
     # Possible to check for headers row?
-    headers = ["X", "Y", "Z"]
+    # headers = ["X", "Y", "Z"]
     row = []
 
     for key, value in cur_loc_dict.items():
@@ -63,7 +69,7 @@ def save_current_location():
 
     print(row)
 
-    writer.writerow(headers)
+    # writer.writerow(headers)
     writer.writerow(row)
 
     f.close()
@@ -71,6 +77,29 @@ def save_current_location():
 
 
 def main():
+
+    # Create Temp file to store locations into
+    temp_folder = r"D:\Projects\3dprinter_sampling\temp"
+    temp_file = r"temp_loc.csv"
+
+    temp_full_path = os.path.join(temp_folder, temp_file)
+
+    if not os.path.isdir(temp_folder):
+        os.mkdir(temp_folder)
+        print(f"Folder does not exist, making directory: {temp_folder}")
+
+    # Make newline be blank, prevents extra empty lines from happening
+    f = open(temp_full_path, 'w', newline="")
+    writer = csv.writer(f)
+
+    # Create headers
+    headers = ["X", "Y", "Z"]
+    writer.writerow(headers)
+    f.close()
+
+
+    # Have save_current_location append to temp file
+    # Either to multiline to have save as button
 
     # Set up GUI Layout (A single button)
     layout = [[sg.Button(SAVE_LOC_BUTTON)]]
