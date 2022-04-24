@@ -20,6 +20,8 @@ import threading
 START = "Start"
 STOP = "Stop"
 
+OPEN_CSV_FILEBROWSE_KEY = "-CSV_INPUT-"
+
 IS_RUNNING_EXPERIMENT = False
 
 
@@ -29,8 +31,9 @@ def get_list():
 
 
 # Define thread function
-def run_experiment():
+def run_experiment(csv_file_path):
     print("Run Experiment")
+    print(f"CSV File Path: {csv_file_path}")
     #  Load up a list
     num_list = get_list()
     len_num_list = len(num_list)
@@ -60,7 +63,8 @@ def main():
     global IS_RUNNING_EXPERIMENT
 
     # Setup 2 button layout, start/stop
-    layout = [[sg.Button(START, size=(10, 1)), sg.Button(STOP, size=(10, 1))]]
+    layout = [ [sg.Input(), sg.FileBrowse(key=OPEN_CSV_FILEBROWSE_KEY)],
+               [sg.Button(START, size=(10, 1)), sg.Button(STOP, size=(10, 1))] ]
 
     # Setup window
     window = sg.Window("Thread Test", layout, location=(100, 100))
@@ -83,7 +87,9 @@ def main():
             print(f"You pressed: {START}")
             IS_RUNNING_EXPERIMENT = True
 
-            experiment_thread = threading.Thread(target=run_experiment, args=(), daemon=True)
+            csv_file_path = values[OPEN_CSV_FILEBROWSE_KEY]
+
+            experiment_thread = threading.Thread(target=run_experiment, args=(csv_file_path,), daemon=True)
             experiment_thread.start()
             # run_experiment()
         elif event == STOP:
