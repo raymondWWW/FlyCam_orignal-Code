@@ -12,25 +12,83 @@ https://stackoverflow.com/questions/33640283/thread-that-i-can-pause-and-resume
 """
 
 import PySimpleGUI as sg
+import time
+import threading
+
+
+# CONSTANTS
+START = "Start"
+STOP = "Stop"
+
+IS_RUNNING_EXPERIMENT = False
+
+
+def get_list():
+    result = [1, 2, 3, 4, 5]
+    return result
 
 
 # Define thread function
+def run_experiment():
+    print("Run Experiment")
+    #  Load up a list
+    num_list = get_list()
+    len_num_list = len(num_list)
 
-#  Load up a list
+    counter = 1
+    while True:
+        print(f"Starting While Loop Counter: {counter}")
+        time.sleep(1)
 
-#  run for loop going through list
+        for item in num_list:
+            print(f"item: {item}")
+
+        if not IS_RUNNING_EXPERIMENT:
+            print("Not running experiment, stopping function")
+            return
+
+        counter += 1
+
+    # print("Done Running Run Experiment")
+
+    pass
 
 
 def main():
     print("Main")
 
+    global IS_RUNNING_EXPERIMENT
+
     # Setup 2 button layout, start/stop
-    layout = [[sg.Button("Start", size=(10, 1)), sg.Button("Stop", size=(10, 1))]]
+    layout = [[sg.Button(START, size=(10, 1)), sg.Button(STOP, size=(10, 1))]]
 
     # Setup window
     window = sg.Window("Thread Test", layout, location=(100, 100))
 
+    # Threading Setup
+    # Initialize empty experiment_thread object, will be used with "Start Experiment" is pushed
+    experiment_thread = threading.Thread()
+
+    # Initialize threading event (Allows you to stop the thread)
+    thread_event = threading.Event()
+
     # Start While Loop
+    while True:
+
+        event, values = window.read(timeout=1)
+
+        if event == sg.WIN_CLOSED:
+            break
+        elif event == START:
+            print(f"You pressed: {START}")
+            IS_RUNNING_EXPERIMENT = True
+
+            experiment_thread = threading.Thread(target=run_experiment, args=(), daemon=True)
+            experiment_thread.start()
+            # run_experiment()
+        elif event == STOP:
+            IS_RUNNING_EXPERIMENT = False
+            print(f"You pressed: {STOP}")
 
     #  If/Else
     #  Close button
@@ -39,7 +97,7 @@ def main():
     #  Stop
     #   Pause thread
 
-
+    print("GUI Closed")
 
     pass
 
