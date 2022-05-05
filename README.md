@@ -12,7 +12,13 @@ San Francisco State University (expected graduation Summer 2022).
 Required Libraries
 (Pending...)
 
-Features
+Current Features
+(Pending...)
+
+Planned Features
+(Pending...)
+
+Clean Up Tasks (repo and code)
 (Pending...)
 
 Funding:
