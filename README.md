@@ -1,5 +1,5 @@
-# 3dprinter_sampling
-Soon to be renamed RoboCam (thank you Thomas Zimmerman for the project name).
+# RoboCam
+(thank you Thomas Zimmerman for the project name)
 
 Note: Work-in-Progress.
 
