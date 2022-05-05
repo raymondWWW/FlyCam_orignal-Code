@@ -15,6 +15,13 @@ Required Libraries
 Features
 (Pending...)
 
+Funding:
+Genentech Graduate Fellowship
+
+
+Committee Members
+Dr. Raymond Esquerra, Thomas Zimmerman, Dr. Mark Chan
+
 
 Changelog (more updates soon):
 09 Jun 2021: Can take consistent pictures (camera settings changed). Pause video stream while taking photo (prevents camera buffer issue).
