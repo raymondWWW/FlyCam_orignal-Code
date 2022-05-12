@@ -10,7 +10,16 @@ Questions:
 -Is OpenCV window with webcam faster than PySimpleGUI?
    -If there is a different, I can't tell.
 
+Links for Later:
+https://python.hotexamples.com/examples/picamera/PiCamera/capture_continuous/python-picamera-capture_continuous-method-examples.html
+PiVideoStream Class with Threading
 
+https://picamera.readthedocs.io/en/release-1.13/api_camera.html#picamera.PiCamera.capture_continuous
+
+Try out
+https://picamera.readthedocs.io/en/release-1.13/api_camera.html#picamera.PiCamera.start_preview
+
+Ideas: flush GUI image window?
 """
 
 import cv2
