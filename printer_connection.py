@@ -327,3 +327,35 @@ def get_serial_data():
     # print("Serial Says:", output)
     return output
 
+def get_serial_data2():
+    global printer
+    
+    # init default output
+    output = ""
+    
+    # Number of attempts to get bytes > 0
+    num_tries = 20
+    
+    # output = printer.readline()
+    # init bytesToRead to 0 so while loop fires
+    bytesToRead = 0
+    for i in range(num_tries):
+    # while bytesToRead == 0:
+        printer.flush()
+        bytesToRead = printer.inWaiting()
+        # If no serial data found, start loop again.
+        if bytesToRead == 0:
+            # if no bytes found, then maybe too many requests.
+            # Sleep for a second to let 3D printer "relax"
+            time.sleep(1)
+            continue
+        else:
+            # bytesToRead > 0, capture it and break the loop
+            print("bytesToRead:", bytesToRead)
+            output = printer.read(bytesToRead)
+            # output = printer.read(512)
+            # output = str(output)
+            output = output.decode("utf-8")
+            # print("Serial Says:", output)
+            break
+    return output
