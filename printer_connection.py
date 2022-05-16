@@ -1,5 +1,11 @@
 """
 Module that sets up 3D Printer with Serial connection and sends GCode
+
+Changelog
+
+27 Apr 2022: Added in get_serial_data2() that loops x times to get
+             serial data that isn't empty. Different from get_serial_data(),
+             so made a different version.
 """
 
 # import libraries
