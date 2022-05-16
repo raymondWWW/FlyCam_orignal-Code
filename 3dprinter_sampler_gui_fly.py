@@ -29,6 +29,8 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+25 Apr 2022: Fixed restart bug, can now run multiple experiments without restarting GUI!
+             Solution: Use flag to make experiment function end and make forever while loop.
 21 Apr 2022: Added in Z Stack Creator
 13 Apr 2022: Added Camera Tab to adjust picture capture resolution for "Pic" button and will show resize image.
 06 Jun 2021: Can take pictures in Experiment Thread. No video yet. Can't change resolution, bugs out. Buffer issue?
@@ -230,7 +232,7 @@ def run_relative(direction, values):
 
 # TODO: Include picamera settings
 
-
+# Thread version
 # Define function start_experiment(event, values)
 def run_experiment(event, values, thread_event, camera):
     """
@@ -260,7 +262,9 @@ def run_experiment(event, values, thread_event, camera):
     
     # Create While loop to check if thread_event is not set (closing)
     count_run = 0
-    while not thread_event.isSet():
+    # while not thread_event.isSet():
+    # while True:
+    while is_running_experiment:
         
         # TODO: Put in the rest of the code for Pic, Video, Preview from 3dprinter_start_experiment or prepare_experiment
         print("=========================")
@@ -300,6 +304,12 @@ def run_experiment(event, values, thread_event, camera):
                 # Bug: Crashes anyway because of threading
                 #camera.resolution = (VID_WIDTH, VID_HEIGHT)
                 # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+            # May implement the following to break out of loop first. Helpful for lots of wells
+            """    
+            if is_running_experiment == False:
+                print("Stopping Experiment...")
+                return
+            """
             well_number += 1
         
         count_run += 1
@@ -332,7 +342,7 @@ def run_experiment(event, values, thread_event, camera):
 # TODO: Test picture/video capabilities while camera feed is running. Update, picture works
 
 
-
+# Non-thread version
 def run_experiment_gui(main_values, camera):
     # Inputs: values or csv_filename?
     
@@ -754,7 +764,7 @@ def main():
     
 
     # Create window and show it without plot
-    window = sg.Window("3D Printer GUI Test", layout, location=(100, 100))
+    window = sg.Window("3D Printer GUI Test", layout, location=(100, 0))
     
     
     # Create experiment_run_counter
@@ -813,7 +823,7 @@ def main():
             
             # Uncomment to see your CSV File (is it the correct path?)
             # print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
-            """
+            
             # Disable "Start Experiment" Button
             window[START_EXPERIMENT].update(disabled=True)
             # Enable "Stop Experiment" Button
@@ -822,11 +832,11 @@ def main():
             # Create actual experiment_thread
             experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera,), daemon=True)
             experiment_thread.start()
-            """
+            
             # Create Unique Folder, Get that Unique Folder's Name
             
             # Non-Thread Version of Running Experiment
-            run_experiment_gui(values, camera)
+            # run_experiment_gui(values, camera)
             
         elif event == STOP_EXPERIMENT:
             print("You pressed Stop Experiment")
