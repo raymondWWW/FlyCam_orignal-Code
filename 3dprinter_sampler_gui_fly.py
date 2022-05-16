@@ -29,7 +29,8 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
-31 Mar 2022: Added in Camera tab, can rotate camera, set still image picture resolution for "Pic" button
+21 Apr 2022: Added in Z Stack Creator
+13 Apr 2022: Added Camera Tab to adjust picture capture resolution for "Pic" button and will show resize image.
 06 Jun 2021: Can take pictures in Experiment Thread. No video yet. Can't change resolution, bugs out. Buffer issue?
 05 Jun 2021: Added in Experiment Thread, can now run GUI and Experiment at the same time.
 28 Apr 2021: Changed Experiment variables into CONSTANTS
@@ -47,6 +48,7 @@ from picamera import PiCamera
 import PySimpleGUI as sg
 import cv2
 import numpy as np
+import os
 import time
 import threading
 
@@ -78,16 +80,28 @@ EXP_RADIO_PROMPT = "For the experiment, choose to take Pictures, Videos, or Prev
 
 # ---- CAMERA TAB ----
 # CONSTANTS
-PIC_SAVE_FOLDER = ""
+PIC_SAVE_FOLDER = r"/home/pi/Projects/3dprinter_sampling"
 
 # Video Streaming:
+# Old = 640x480
+"""
 VID_WIDTH = 640
 VID_HEIGHT = 480
+"""
+VID_WIDTH = 960
+VID_HEIGHT = 720
+VID_RES = (VID_WIDTH, VID_HEIGHT)
 
 # Image Capture Resolution
-PIC_WIDTH = 1920
-PIC_HEIGHT = 1080
+# Take a Picture, 12MP: 4056x3040
+PIC_WIDTH = 4056
+PIC_HEIGHT = 3040
 PIC_RES = (PIC_WIDTH, PIC_HEIGHT)
+
+# Monitor Resolution (The one you're using to look at this)
+MON_WIDTH = 1920
+MON_HEIGHT = 1080
+MON_RES = (MON_WIDTH, MON_HEIGHT)
 
 # GUI CONSTANTS
 # Button Labels:
@@ -122,6 +136,19 @@ Z_MINUS = "Z-"
 WINDOW_GUI_TIMEOUT = 10 # in ms
 # TODO: Put in Constants for GCODE Input
 
+# --- Z Stack Constants ----
+# INPUT Z STACK PARAMETERS Keys
+Z_START_KEY = "-Z_START_KEY-"
+Z_END_KEY = "-Z_END_KEY-"
+Z_INC_KEY = "-Z_INC_KEY-"
+
+SAVE_FOLDER_KEY = "-SAVE_FOLDER_KEY-"
+
+# Button Text
+START_Z_STACK_CREATION_TEXT = "Start Z Stack Creation"
+
+
+is_running_experiment = False
 
 # ==== USER DEFINED FUNCTIONS =====
 
@@ -262,16 +289,16 @@ def run_experiment(event, values, thread_event, camera):
                 # print(file_full_path)
                 
                 # Change Image Capture Resolution
-                # pic_width = PIC_WIDTH
-                # pic_height = PIC_HEIGHT
+                pic_width = PIC_WIDTH
+                pic_height = PIC_HEIGHT
             
-                # camera.resolution = (pic_width, pic_height)
+                #camera.resolution = (pic_width, pic_height)
                 
                 camera.capture(file_full_path)
                 
                 # Return to streaming resolution: 640 x 480 (or it will crash)
                 # Bug: Crashes anyway because of threading
-                # camera.resolution = (VID_WIDTH, VID_HEIGHT)
+                #camera.resolution = (VID_WIDTH, VID_HEIGHT)
                 # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
             well_number += 1
         
@@ -303,6 +330,144 @@ def run_experiment(event, values, thread_event, camera):
 # TODO: Include input for number of runs or length of time to run? (Use my Arduino strategy, put in the camera for loop
 #       Recommend number of runs first, then implement countdown algorithm?
 # TODO: Test picture/video capabilities while camera feed is running. Update, picture works
+
+
+
+def run_experiment_gui(main_values, camera):
+    # Inputs: values or csv_filename?
+    
+    global is_running_experiment
+    
+    # Get paths from CSV file
+    print("run_experiment")
+    
+    
+    
+    
+    # Get CSV Filename
+    csv_filename = main_values[OPEN_CSV_FILEBROWSE_KEY]
+    
+    # Get Path List from CSV
+    path_list = P.get_path_list_csv(csv_filename)
+    
+    # Get GCODE Location List from path_list
+    gcode_string_list = P.convert_list_to_gcode_strings(path_list)
+    gcode_string_list_len = len(gcode_string_list)
+    print(f"gcode_string_list_len: {gcode_string_list_len}")
+    
+    # Go into Absolute Positioning Mode
+    printer.run_gcode(C.ABSOLUTE_POS)
+    
+    # Move to first well
+    print("Moving to first well and waiting a few seconds")
+    printer.run_gcode(gcode_string_list[0])
+    
+    # Wait to go to well
+    time.sleep(8)
+    print("Done waiting to go to WELL")
+    
+    
+    # setup_picture_camera_settings(camera)
+    # setup_default_camera_settings(camera)
+    
+    
+    # Change camera resolution
+    # Sensor resolution (Pi Camera 2, 3280x2464)
+    # Change resolution to largest resolution for taking pictures
+    # Change Image Capture Resolution
+    pic_width = PIC_WIDTH
+    pic_height = PIC_HEIGHT
+
+    camera.resolution = (pic_width, pic_height)
+    
+    # Sleep time for exposure mode
+    # time.sleep(expo_wait_time)
+    
+    
+    # Setup separate GUI
+    # setup theme
+    sg.theme("Light Brown 3")
+    
+    # setup layout of new GUI (one window with a single button)
+    layout_exp = [[sg.Button("Stop Experiment", size=(20,20))]]
+
+    # setup window for new GUI
+    window_exp = sg.Window("Experiment GUI Window", layout_exp, finalize=True)
+    
+    # Create New Folder If not in "Preview" Mode
+    if main_values[EXP_RADIO_PREVIEW_KEY] == False:
+        folder_path = P.create_and_get_folder_path()
+        print("Not in Preview Mode, creating folder:", folder_path)
+    
+    # Setup how long to wait before moving to next well (and GUI loop)
+    time_to_wait = 2000 # in millisec
+    
+    # Initialize index for going through gcode_string_list
+    index = 0
+    # ---- EVENT LOOP ----
+    while True:
+        event, values = window_exp.read(timeout=time_to_wait)
+        
+        # Run Experiment
+        # print(f"Index: {index}")
+        # print(gcode_string_list[index])
+        
+        well_number = index + 1
+        print(f"Well Number: {well_number}")
+        
+        printer.run_gcode(gcode_string_list[index])
+        # Wait to go to well
+        time.sleep(7)
+        
+        if main_values[EXP_RADIO_PREVIEW_KEY] == True:
+            print("Preview Mode is On, only showing preview camera \n")
+            # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+            # time.sleep(5)
+            
+            # camera.stop_preview()
+        elif main_values[EXP_RADIO_VID_KEY] == True:
+            print("Recording Video Footage")
+            file_full_path = P.get_file_full_path(folder_path, well_number)
+            # TODO: Change to Video Captures
+            # camera.capture(file_full_path)
+        elif main_values[EXP_RADIO_PIC_KEY] == True:
+            print("Taking Pictures Only")
+            file_full_path = P.get_file_full_path(folder_path, well_number)
+            # print(file_full_path)
+            
+            
+            camera.capture(file_full_path)
+            # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+            time.sleep(2)
+            
+            
+        
+        
+        # If index is at the end of the list, reset it. else increment it.
+        if index == (gcode_string_list_len - 1):
+            index = 0
+        else:
+            index += 1
+            
+        
+        
+        if event.startswith("Stop"):
+            print("You pressed Stop. Stopping experiment")
+            break
+    
+    window_exp.close()
+    
+    # Change resolution back to video stream
+    camera.resolution = (VID_WIDTH, VID_HEIGHT)
+    # time.sleep(expo_wait_time)
+    
+    # setup_default_camera_settings(camera)
+    
+    is_running_experiment = False
+
+    
+    # 
+    pass
 
 
 # Define function get_gcode_string_list(values)
@@ -382,16 +547,90 @@ def check_for_digits_in_key(key_str, window, event, values):
             window[key_str].update(values[key_str][:-1])
 
 
+def create_z_stack(z_start, z_end, z_increment, save_folder_location, camera):
+    # Assumes all inputs are floating or integers, no letters!
+    print("create_z_stack")
+    print("Pausing Video Stream")
+
+    # GCODE Position, goes fastest
+    position = "G0"
+
+    # Go into Absolute Mode, "G90"
+    # Run GCODE to go into Absolute Mode
+    printer.run_gcode(C.ABSOLUTE_POS)
+
+    # Will use absolute location mode to go to each z
+    # Alternative, you could use relative and get current location to get z value.
+    # Test: Use Get Current Location to compare expected vs actual z.
+
+    # Create Unique folder to save into save_folder_location
+    save_folder_path = f"{save_folder_location}/z_stack_{get_unique_id()}"
+    
+    # Check if folder exists, if not, create it
+    if not os.path.isdir(save_folder_path):
+        print("Folder Does NOT exist! Making New Folder")
+        os.mkdir(save_folder_path)
+    else:
+        print("Folder Exists")
+    
+    # print(f"save_folder_path: {save_folder_path}")
+    
+    # Go to first location, wait x seconds?
+
+    # Mark where we think z_focus is?
+
+    for z in np.arange(z_start, z_end+z_increment, z_increment):
+        print(f"z: {z}")
+        # Make sure number gets rounded to 2 decimal places (ex: 25.23)
+
+        # Round z to 2 decimal places
+        z_rounded = round(z, 2)
+        # Fill out with zeroes until 5 characters long, example: 1.2 becomes 01.20
+        # For easier viewing purposes depending on OS.
+        z_rounded_str = f"{z_rounded}".zfill(5) 
+
+        # Convert z to GCODE
+        # GCODE Format: G0Z2.34
+        gcode_str = f"{position}Z{z_rounded}"
+
+        print(f"gcode_str: {gcode_str}")
+
+        # Go to z location using printer_connection module's run_gcode
+        # Possible bug, could this module be used elsewhere? This code may have to run in the same location as the GUI.
+        printer.run_gcode(gcode_str)
+        # Wait x seconds for extruder to get to location.
+        time.sleep(2)
+
+
+        # Take Picture and save to folder location
+        save_file_name = f"_image_{z_rounded_str}.jpg"
+        save_full_path = f"{save_folder_path}/{save_file_name}"
+        
+        # Change to max resolution
+        camera.resolution = PIC_RES
+        
+        
+        camera.capture(save_full_path)
+        
+        # Change back to streaming resolution
+        camera.resolution = VID_RES
+
+    
+    print(f"Done Creating Z Stack at {save_folder_path}")
+
+    pass
+
+
 # define main function
 def main():
     
     # Temporary Solution: Make pic res/save globally accessible for modification
-    global PIC_WIDTH, PIC_HEIGHT, PIC_SAVE_FOLDER
+    global PIC_WIDTH, PIC_HEIGHT, PIC_SAVE_FOLDER, is_running_experiment
 
     # Setup Camera
     # initialize the camera and grab a reference to the raw camera capture
     camera = PiCamera()
-    camera.resolution = (640, 480)
+    camera.resolution = (VID_WIDTH, VID_HEIGHT)
     camera.framerate = 32
     # MHT: 270
     # camera.rotation = 270
@@ -400,9 +639,11 @@ def main():
     # camera.rotation = 90
     
     # MHT: 270, Cell Sensor: 90
-    camera.rotation = C.CAMERA_ROTATION_ANGLE
+    # camera.rotation = C.CAMERA_ROTATION_ANGLE
+    # Lab stuff
+    camera.rotation = 270
     
-    rawCapture = PiRGBArray(camera, size=(640, 480))
+    rawCapture = PiRGBArray(camera, size=(VID_WIDTH, VID_HEIGHT))
     
     #
     # allow the camera to warmup
@@ -465,12 +706,22 @@ def main():
                      [sg.Text("Save Images to Folder:"), sg.In(size=(25,1), enable_events=True, key=PIC_SAVE_FOLDER_KEY), sg.FolderBrowse()]
                    ]
     
+    # Z Stack Tab
+    tab_4_layout = [ [sg.Text("Input Z Stack Parameters (Units are in mm):")],
+                       [sg.Text("Z Start:"), sg.InputText("0", size=(7, 1), enable_events=True, key=Z_START_KEY),
+                        sg.Text("Z End:"),sg.InputText("2", size=(7, 1), enable_events=True, key=Z_END_KEY),
+                        sg.Text("Z Inc:"),sg.InputText("0.5", size=(7, 1), enable_events=True, key=Z_INC_KEY)],
+                       [sg.Text("Save Folder Location:"), sg.In(size=(25,1), enable_events=True, key=SAVE_FOLDER_KEY), sg.FolderBrowse()],
+                       [sg.Button(START_Z_STACK_CREATION_TEXT)]
+                   ]
+    
     # TABs Layout (New, Experimental
     # TODO: Put in Pic/Video Button, test them out.
     layout = [ [sg.Image(filename='', key='-IMAGE-')],
                [sg.TabGroup([[sg.Tab("Tab 1 (Exp)", tab_1_layout, key="-TAB_1_KEY"),
                               sg.Tab("Tab 2 (Mvmt)", tab_2_layout),
-                              sg.Tab("Tab 3 (CAM)", tab_3_layout)]])
+                              sg.Tab("Tab 3 (CAM)", tab_3_layout),
+                              sg.Tab("Tab 4 (Z Stack)", tab_4_layout)]])
                ],
                [sg.Button("Pic"), sg.Button("Vid")]
              ]
@@ -503,7 +754,7 @@ def main():
     
 
     # Create window and show it without plot
-    window = sg.Window("3D Printer GUI Test", layout, location=(800, 400))
+    window = sg.Window("3D Printer GUI Test", layout, location=(100, 100))
     
     
     # Create experiment_run_counter
@@ -527,6 +778,14 @@ def main():
         
         # Convert captured frame to array format, then overwrite frame variable (temporary solution)
         frame = frame.array
+        
+        # If in experiment mode, resize image if it is larger than when rawCapture was created
+        # if is_running_experiment == True:
+            # Resize frame to size of window, maybe
+            # rawCapture = PiRGBArray(camera, size=(VID_WIDTH, VID_HEIGHT))
+            # frame = cv2.resize(frame, (VID_WIDTH, VID_HEIGHT))
+        
+        # TODO: Add in image resizer if in experiment mode. Temp fix to allow for max image resolution while running experiment.
         
         # ---- CSV File Checker and "Start Experiment" Enable/Disable If/Else logic
         # Check if CSV file Exists (length is 0 if CSV not loaded)
@@ -554,7 +813,7 @@ def main():
             
             # Uncomment to see your CSV File (is it the correct path?)
             # print("CSV File:", values[OPEN_CSV_FILEBROWSE_KEY])
-            
+            """
             # Disable "Start Experiment" Button
             window[START_EXPERIMENT].update(disabled=True)
             # Enable "Stop Experiment" Button
@@ -563,8 +822,11 @@ def main():
             # Create actual experiment_thread
             experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera,), daemon=True)
             experiment_thread.start()
-            
+            """
             # Create Unique Folder, Get that Unique Folder's Name
+            
+            # Non-Thread Version of Running Experiment
+            run_experiment_gui(values, camera)
             
         elif event == STOP_EXPERIMENT:
             print("You pressed Stop Experiment")
@@ -602,6 +864,18 @@ def main():
             
             # Return to streaming resolution: 640 x 480 (or it will crash)
             camera.resolution = (VID_WIDTH, VID_HEIGHT)
+            
+            # Display image with OpenCV (Keeps Crashing)
+            pic_capture = cv2.imread(pic_save_full_path, cv2.IMREAD_COLOR)
+            pic_resize = cv2.resize(pic_capture, MON_RES)
+            pic_window_tite = "pic_resize"
+            cv2.imshow(pic_window_tite, pic_resize)
+            print("Press 'q' to close picture")
+            key=cv2.waitKey(0)
+            if key == ord("q"):
+                cv2.destroyAllWindows()
+            
+            
             
             #with PiBayerArray(camera) as stream:
                 # camera.capture(stream, 'jpeg', bayer=True)
@@ -659,6 +933,19 @@ def main():
             PIC_WIDTH = new_pic_width
             PIC_HEIGHT = new_pic_height
             #print(f"Global: {PIC_WIDTH, PIC_HEIGHT}")
+        elif event == START_Z_STACK_CREATION_TEXT:
+            print(f"You pressed button: {START_Z_STACK_CREATION_TEXT}")
+            z_start = float(values[Z_START_KEY])
+            z_end = float(values[Z_END_KEY])
+            z_inc = float(values[Z_INC_KEY])
+            
+            # If nothing chosen, use default folder location:
+            if len(values[SAVE_FOLDER_KEY]) == 0:
+                save_folder_location = PIC_SAVE_FOLDER
+            else:
+                save_folder_location = values[SAVE_FOLDER_KEY]
+            print(f"save_folder_location: {save_folder_location}")
+            create_z_stack(z_start, z_end, z_inc, save_folder_location, camera)
         if event == PIC_SAVE_FOLDER_KEY:
             save_folder = values[PIC_SAVE_FOLDER_KEY]
             print(f"Save folder: {save_folder}")
