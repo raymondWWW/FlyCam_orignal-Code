@@ -47,6 +47,7 @@ Changelog
 from datetime import datetime
 from picamera.array import PiRGBArray, PiBayerArray
 from picamera import PiCamera
+import csv
 import PySimpleGUI as sg
 import cv2
 import numpy as np
@@ -149,6 +150,14 @@ SAVE_FOLDER_KEY = "-SAVE_FOLDER_KEY-"
 # Button Text
 START_Z_STACK_CREATION_TEXT = "Start Z Stack Creation"
 
+
+# --- Save a Location Constants ---
+SAVE_LOC_BUTTON = "Save Loc Button"
+
+# Create Temp file to store locations into
+TEMP_FOLDER = r"/home/pi/Projects/3dprinter_sampling/temp"
+TEMP_FILE = r"temp_loc.csv"
+TEMP_FULL_PATH = os.path.join(TEMP_FOLDER, TEMP_FILE)
 
 is_running_experiment = False
 
@@ -613,7 +622,7 @@ def create_z_stack(z_start, z_end, z_increment, save_folder_location, camera):
 
 
         # Take Picture and save to folder location
-        save_file_name = f"_image_{z_rounded_str}.jpg"
+        save_file_name = f"_image_{z_rounded_str}_.jpg"
         save_full_path = f"{save_folder_path}/{save_file_name}"
         
         # Change to max resolution
@@ -629,6 +638,110 @@ def create_z_stack(z_start, z_end, z_increment, save_folder_location, camera):
     print(f"Done Creating Z Stack at {save_folder_path}")
 
     pass
+
+
+# Define function to get current location
+def get_current_location():
+    printer.run_gcode("M114")
+    serial_string = printer.get_serial_data()
+    if GCL.does_location_exist_m114(serial_string) == True:
+        current_location_dictionary, is_location_found = GCL.parse_m114(serial_string)
+        print(current_location_dictionary)
+        # printer.printer.flush()
+    else:
+        print("Location Not Found, Try Again")
+    pass
+    
+
+def get_current_location2():
+    print("Getting Current Location...")
+    
+    # Init result with negative values for error checking
+    # If negative value, then location was not found
+    result = {"X": -1.00, "Y": -1.00, "Z": -1.00}
+    
+    # Number of attempts to check for location (how many times to run for loop)
+    num_location_checks = 10
+    
+    # Number of location grabs until that one is accepted (in case of outdated location)
+    num_until_location_accepted = 1
+    
+    # Init location_found_counter (want loc to be found at least once since old one is stored)
+    location_found_counter = 0
+    
+    num_searches = 0
+    for i in range(num_location_checks):
+        num_searches += 1
+        # Uncomment print statement for debugging
+        # print(f"Location Search Attempt: {i}")
+        # Run M114 GCODE
+        printer.run_gcode("M114")
+        serial_string = printer.get_serial_data2()
+        if GCL.does_location_exist_m114(serial_string) == True:
+            
+            current_location_dictionary, is_location_found = GCL.parse_m114(serial_string)
+            
+            if location_found_counter == 0:
+                location_found_counter += 1
+                # Uncomment print statement for debugging
+                # print("Location Found, but might be outdated. Trying again")
+                continue
+            elif location_found_counter >= num_until_location_accepted:
+                result = current_location_dictionary
+                print("Location Found, Stopping Search.")
+                break
+        else:
+            print("Location Not Found, Trying Again...")
+            # If location not found, wait a second in case there is a buffer issue?
+            # If no data found, get_serial_data2 ran at least 20 times, so used default empty string
+            #   Should try again
+            """
+            print(f"Data Found: {serial_string}")
+            if len(serial_string) == 0:
+                print("No data found")
+            """
+            time.sleep(1)
+            continue
+        
+        # Get Serial Data
+        # If location exist in serial string, increment location_found_counter by 1, start while loop again
+        #   If loc exist and counter is 1, save location
+        # If location does not exist, don't increment, start while loop again
+    
+    print(f"Number of Location Retrieval Attempts: {num_searches}")
+    print("**Note: If all coord are -1.00, then location was not found")
+    print(f"Location: {result}")
+    return result
+
+
+# Save current location
+# Alt: Save to List instead, then have "Save" button?
+# Ask user to choose file name and location first?
+# Can only save loc if filename is chosen?
+def save_current_location():
+    print("save_current_location")
+    cur_loc_dict = get_current_location2()
+    print(f"cur_loc_dict: {cur_loc_dict}")
+
+    # Make newline be blank, prevents extra empty lines from happening
+    f = open(TEMP_FULL_PATH, 'a', newline="")
+    writer = csv.writer(f)
+
+    # Possible to check for headers row?
+    # headers = ["X", "Y", "Z"]
+    row = []
+
+    for key, value in cur_loc_dict.items():
+        print(key, value)
+        row.append(value)
+
+    print(row)
+
+    # writer.writerow(headers)
+    writer.writerow(row)
+
+    f.close()
+    print("File Saved")
 
 
 # define main function
@@ -669,6 +782,21 @@ def main():
     y_start = C.Y_MAX
     z_start = 50
     # printer.move_extruder_out_of_the_way(x_start, y_start, z_start)
+    
+    # Create Temp file to store locations into
+
+    if not os.path.isdir(TEMP_FOLDER):
+        os.mkdir(TEMP_FOLDER)
+        print(f"Folder does not exist, making directory: {TEMP_FOLDER}")
+
+    # Make newline be blank, prevents extra empty lines from happening
+    f = open(TEMP_FULL_PATH, 'w', newline="")
+    writer = csv.writer(f)
+
+    # Create headers
+    headers = ["X", "Y", "Z"]
+    writer.writerow(headers)
+    f.close()
 
     sg.theme("LightGreen")
 
@@ -689,7 +817,7 @@ def main():
                    ]
     
     # Tab 2: Movement Tab
-    tab_2_layout = [ [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1))],
+    tab_2_layout = [ [sg.Text("", size=(3, 1)), sg.Button("Get Current Location", size=(20, 1)), sg.Button(SAVE_LOC_BUTTON)],
                      [sg.Radio(RELATIVE_TENTH_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TENTH_KEY),
                         sg.Radio(RELATIVE_ONE_TEXT, RADIO_GROUP, default=True, key=RELATIVE_ONE_KEY),
                         sg.Radio(RELATIVE_TEN_TEXT, RADIO_GROUP, default=False, key=RELATIVE_TEN_KEY)
@@ -764,7 +892,7 @@ def main():
     
 
     # Create window and show it without plot
-    window = sg.Window("3D Printer GUI Test", layout, location=(100, 0))
+    window = sg.Window("3D Printer GUI Test", layout, location=(300, 0))
     
     
     # Create experiment_run_counter
@@ -904,6 +1032,8 @@ def main():
         elif event == "Get Current Location":
             print("===================================")
             print("You pressed Get Current Location!")
+            get_current_location2()
+            """
             printer.run_gcode("M114")
             serial_string = printer.get_serial_data()
             if GCL.does_location_exist_m114(serial_string) == True:
@@ -913,6 +1043,7 @@ def main():
             else:
                 print("Location Not Found, Try Again")
                 # printer.printer.flush()
+            """
         elif event in [X_PLUS, X_MINUS, Y_PLUS, Y_MINUS, Z_PLUS, Z_MINUS]:
             # If any of the direction buttons are pressed, move extruder
             #  in that direction using the increment radio amounts
@@ -956,6 +1087,9 @@ def main():
                 save_folder_location = values[SAVE_FOLDER_KEY]
             print(f"save_folder_location: {save_folder_location}")
             create_z_stack(z_start, z_end, z_inc, save_folder_location, camera)
+        elif event == SAVE_LOC_BUTTON:
+            print(f"You pressed: {SAVE_LOC_BUTTON}")
+            save_current_location()
         if event == PIC_SAVE_FOLDER_KEY:
             save_folder = values[PIC_SAVE_FOLDER_KEY]
             print(f"Save folder: {save_folder}")
