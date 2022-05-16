@@ -1,5 +1,20 @@
 """
 Test Preview Script for PiCamera
+
+Ideas:
+-Turn on/off Fullscreen Mode?
+-Use Linux Window management to allow user to move Camera Preview?
+
+Allow float or int in InputText idea:
+-Search for non-integer, delete
+-Search for all periods, delete all except for one?
+  -Float idea: or use two InputText boxes, example: [  ].[  ]
+-How to limit to only x number of numbers?
+-How to auto select all text when clicking in InputText the first time?
+
+Changelog:
+12 May 2022: Can control PiCamera Preview Window: Location, Preview Size, and Alpha (Opacity).
+             Turns off fullscreen mode.
 """
 
 from picamera import PiCamera
