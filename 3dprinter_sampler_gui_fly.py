@@ -29,6 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+31 Mar 2022: Added in Camera tab, can rotate camera, set still image picture resolution for "Pic" button
 06 Jun 2021: Can take pictures in Experiment Thread. No video yet. Can't change resolution, bugs out. Buffer issue?
 05 Jun 2021: Added in Experiment Thread, can now run GUI and Experiment at the same time.
 28 Apr 2021: Changed Experiment variables into CONSTANTS
