@@ -589,9 +589,11 @@ def get_current_location():
     
 
 def get_current_location2():
+    print("Getting Current Location...")
     
-    # Init location_found_counter (want it to be found at least once since old one is stored)
-    location_found_counter = 0
+    # Init result with negative values for error checking
+    # If negative value, then location was not found
+    result = {"X": -1.00, "Y": -1.00, "Z": -1.00}
     
     # Number of attempts to check for location (how many times to run for loop)
     num_location_checks = 10
@@ -599,12 +601,14 @@ def get_current_location2():
     # Number of location grabs until that one is accepted (in case of outdated location)
     num_until_location_accepted = 1
     
-    # Init result with negative values for error checking
-    # If negative value, then location was not found
-    result = {"X": -1.00, "Y": -1.00, "Z": -1.00}
+    # Init location_found_counter (want loc to be found at least once since old one is stored)
+    location_found_counter = 0
     
+    num_searches = 0
     for i in range(num_location_checks):
-        print(f"Location Search Attempt: {i}")
+        num_searches += 1
+        # Uncomment print statement for debugging
+        # print(f"Location Search Attempt: {i}")
         # Run M114 GCODE
         printer.run_gcode("M114")
         serial_string = printer.get_serial_data2()
@@ -614,14 +618,15 @@ def get_current_location2():
             
             if location_found_counter == 0:
                 location_found_counter += 1
-                print("Location Found, but might be outdated. Trying again")
+                # Uncomment print statement for debugging
+                # print("Location Found, but might be outdated. Trying again")
                 continue
             elif location_found_counter >= num_until_location_accepted:
                 result = current_location_dictionary
-                print("Location Found, Stopping Search")
+                print("Location Found, Stopping Search.")
                 break
         else:
-            print("Location Not Found, Trying Again")
+            print("Location Not Found, Trying Again...")
             # If location not found, wait a second in case there is a buffer issue?
             # If no data found, get_serial_data2 ran at least 20 times, so used default empty string
             #   Should try again
@@ -637,8 +642,10 @@ def get_current_location2():
         # If location exist in serial string, increment location_found_counter by 1, start while loop again
         #   If loc exist and counter is 1, save location
         # If location does not exist, don't increment, start while loop again
-    print(f"Location: {result}")
+    
+    print(f"Number of Location Retrieval Attempts: {num_searches}")
     print("**Note: If all coord are -1.00, then location was not found")
+    print(f"Location: {result}")
     return result
     
 
