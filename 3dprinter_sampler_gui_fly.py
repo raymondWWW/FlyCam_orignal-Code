@@ -29,6 +29,9 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+22 May 2022: Added in Get Current Location algorithm from MHT, loops until the latest location is found.
+             Added in Save Location Button to save current location to temp CSV file;
+             Is saved to temp file created at GUI startup, so will delete old one. Must save manually for now!
 25 Apr 2022: Fixed restart bug, can now run multiple experiments without restarting GUI!
              Solution: Use flag to make experiment function end and make forever while loop.
 21 Apr 2022: Added in Z Stack Creator
