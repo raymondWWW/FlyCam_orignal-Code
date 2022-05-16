@@ -351,7 +351,7 @@ def get_serial_data2():
             continue
         else:
             # bytesToRead > 0, capture it and break the loop
-            print("bytesToRead:", bytesToRead)
+            # print("bytesToRead:", bytesToRead)
             output = printer.read(bytesToRead)
             # output = printer.read(512)
             # output = str(output)
