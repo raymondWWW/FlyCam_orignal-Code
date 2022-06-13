@@ -4,7 +4,7 @@ using the centers of the corner wells of the well plates
 
 Input number of rows and columns
 
-Test 1, Row:
+Test 1, Row: [Done]
 -Input first and last well location centers of row
 -Calculate location of each well in row using input number of columns
 -Output those locations
