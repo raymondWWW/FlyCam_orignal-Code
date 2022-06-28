@@ -193,7 +193,13 @@ PREVIEW_WINDOW_OFFSET = 30
 # Assumes one monitor is connected to Raspberry Pi
 DEFAULT_SCREEN_INDEX = 0
 
-
+# EXPOSURE MODE CONSTANTS
+EXPOSURE_MODE = "auto"
+# Possible modes: off, auto, night, nightpreview, backlight, spotlight, sports, snow, beach, verylong, fixedfps, antishake, fireworks
+EXPOSURE_MODE_KEY = "-EXPOSURE MODE-"
+EXPO_SETTLE_TIME = 2 # in seconds
+EXPO_SETTLE_TIME_KEY = "-EXPO SETTLE TIME-"
+SET_EXPOSURE_MODE = "Set Expo"
 
 is_running_experiment = False
 
@@ -567,7 +573,8 @@ def get_sample(folder_path_sample, well_number, values):
     #  If Preview is True, do nothing or print "Preview Mode"
     
     pass
-    
+
+
 def get_video(camera):
     
     # Create Unique Filename
@@ -576,7 +583,7 @@ def get_video(camera):
     filename = f"video_{current_time_str}.h264"
     
     # Set Recording Time (in seconds)
-    recording_time = int(1 * 60)
+    recording_time = int(1 * 5)
     
     camera.start_recording(filename)
     camera.wait_recording(recording_time)
@@ -584,6 +591,60 @@ def get_video(camera):
     
     print(f"Recorded Video: {filename}")
 
+
+def get_picture(camera):
+    # TODO: Change variables here to Global to match changes in Camera Tab
+    # Take a Picture, 12MP: 4056x3040
+    pic_width = PIC_WIDTH
+    pic_height = PIC_HEIGHT
+    unique_id = get_unique_id()
+    pic_save_name = f"test_{unique_id}_{pic_width}x{pic_height}.jpg"
+    
+    camera.resolution = (pic_width, pic_height)
+    # camera.resolution = (2592, 1944)
+    
+    pic_save_full_path = f"{PIC_SAVE_FOLDER}/{pic_save_name}"
+    
+    camera.capture(pic_save_full_path)
+    
+    print(f"Saved Image: {pic_save_full_path}")
+    
+    # Return to streaming resolution: 640 x 480 (or it will crash)
+    camera.resolution = (VID_WIDTH, VID_HEIGHT)
+    pass
+
+
+def get_x_pictures(x, delay_seconds, camera):
+    
+    # Set Camera Resolution
+    pic_width = PIC_WIDTH
+    pic_height = PIC_HEIGHT
+    camera.resolution = (pic_width, pic_height)
+    
+    # Stop Preview?
+    camera.stop_preview()
+    
+    # Run loop x times
+    for i in range(x):
+    
+        # Create Unique ID
+        unique_id = get_unique_id()
+        # Create Save Name from Unique ID
+        pic_save_name = f"test_{unique_id}_{pic_width}x{pic_height}.jpg"
+        # Create Full Save Path using Save Name and Save Folder
+        pic_save_full_path = f"{PIC_SAVE_FOLDER}/{pic_save_name}"
+        # Capture Image
+        camera.capture(pic_save_full_path)
+        # Print that picture was saved
+        print(f"Saved Image: {pic_save_full_path}")
+        # Wait Delay Amount
+        time.sleep(delay_seconds)
+    
+    print(f"Done taking {x} pictures.")
+    # Return Camera Resolution?
+    camera.resolution = (VID_WIDTH, VID_HEIGHT)
+    
+    pass
 
 # Define function to create unique text string using date and time.
 def get_unique_id():
@@ -765,7 +826,7 @@ def save_current_location():
 
     # Possible to check for headers row?
     # headers = ["X", "Y", "Z"]
-    row = []
+    row = [0]
 
     for key, value in cur_loc_dict.items():
         print(key, value)
@@ -1006,6 +1067,154 @@ def get_absolute_geometry(win, root):
     return x, y, geom.width, geom.height
 # === End Camera Preview Window Functions ===
 
+
+# === Start Camera Settings Functions ===
+
+def setup_picture_camera_settings(camera):
+    print("Setting up picture camera settings")
+    
+    # Turn Exposure mode back on so camera can adjust to new light
+    camera.exposure_mode = "auto"
+    
+    # Turn off camera led
+    camera.led = False
+    
+    # Camera Framerate
+    camera.framerate = 30
+    time.sleep(1)
+    
+    # Setup default resolution
+    # Sensor resolution (Pi Camera 2, 3280x2464)
+    # width = 640
+    # height = 480
+    camera.resolution = VID_RES
+    
+    # ISO: Image Brightness
+    # 100-200 (daytime), 400-800 (low light)
+    iso_number = 100
+    camera.iso = iso_number
+    
+    time.sleep(10)
+    
+    # Contrast
+    # Takes values between 0-100
+    contrast_number = 50
+    camera.contrast = contrast_number
+    
+    # Automatic White Balance
+    camera.awb_mode = "off"
+    red_gain = 1.5
+    blue_gain = 1.8
+    camera.awb_gains = (red_gain, blue_gain)
+    
+    
+    
+    # Exposure Mode
+    # camera.framerate = 30
+    # camera.shutter_speed = 33164
+    camera.shutter_speed = camera.exposure_speed
+    camera.exposure_mode = "off"
+    # Must let camera sleep so exposure mode can settle on certain values, else black screen happens
+    time.sleep(2)
+    print("Done setting picture camera settings")
+    
+
+def setup_default_camera_settings(camera):
+    print("Setting default camera settings")
+    
+    # Turn Exposure mode back on so camera can adjust to new light
+    camera.exposure_mode = "auto"
+    
+    # Turn off camera led
+    camera.led = False
+    
+    # Camera Framerate
+    camera.framerate = 30
+    time.sleep(1)
+    
+    # Setup default resolution
+    # Sensor resolution (Pi Camera 2, 3280x2464)
+    width = 640
+    height = 480
+    camera.resolution = (width, height)
+    
+    # ISO: Image Brightness
+    # 100-200 (daytime), 400-800 (low light)
+    iso_number = 100
+    camera.iso = iso_number
+    
+    time.sleep(10)
+    
+    # Contrast
+    # Takes values between 0-100
+    contrast_number = 50
+    camera.contrast = contrast_number
+    
+    # Automatic White Balance
+    camera.awb_mode = "off"
+    red_gain = 1.5
+    blue_gain = 1.8
+    camera.awb_gains = (red_gain, blue_gain)
+    
+    
+    
+    # Exposure Mode
+    # camera.framerate = 30
+    # camera.shutter_speed = 33164
+    camera.shutter_speed = camera.exposure_speed
+    camera.exposure_mode = "off"
+    # Must let camera sleep so exposure mode can settle on certain values, else black screen happens
+    time.sleep(2)
+    
+    print("Done setting default camera settings")
+    
+    pass
+
+
+def set_exposure_mode(event, values, window, camera):
+    
+    # Extract Values
+    
+    expo_mode = values[EXPOSURE_MODE_KEY]
+    print(f"expo_mode: {expo_mode}")
+    settle_time = int(values[EXPO_SETTLE_TIME_KEY])
+    print(f"settle_time: {settle_time}")
+    
+    # Turn Exposure mode back on so camera can adjust to new light
+    camera.exposure_mode = "auto"
+    camera.awb_mode = 'auto'
+    
+    # Set ISO to desired value
+    camera.iso = 400
+    
+    # Wait for Automatic Gain Control to settle
+    time.sleep(settle_time)
+    
+    # Now fix the values
+    
+    # Exposure Mode
+    # camera.framerate = 30
+    # camera.shutter_speed = 33164
+    camera.shutter_speed = camera.exposure_speed
+    camera.exposure_mode = 'off'
+    g = camera.awb_gains
+    camera.awb_mode = 'off'
+    camera.awb_gains = g
+    # Must let camera sleep so exposure mode can settle on certain values, else black screen happens
+    # time.sleep(settle_time)
+    
+    
+    pass
+
+def set_white_balance(camera, red_gain=1.5, blue_gain=1.8, isAutoWhiteBalanceOn=False):
+    # Automatic White Balance
+    camera.awb_mode = "off"
+    red_gain = 1.5
+    blue_gain = 1.8
+    camera.awb_gains = (red_gain, blue_gain)
+    pass
+# === End Camera Settings Functions ===
+
 # define main function
 def main():
     
@@ -1120,7 +1329,9 @@ def main():
                      [sg.Text("Pic Width (in pixels):"), sg.InputText(PIC_WIDTH, size=(10, 1), enable_events=True, key=PIC_WIDTH_KEY)],
                      [sg.Text("Pic Height (in pixels):"),sg.InputText(PIC_HEIGHT, size=(10, 1), enable_events=True, key=PIC_HEIGHT_KEY)],
                      [sg.Button(UPDATE_CAMERA_TEXT)],
-                     [sg.Text("Save Images to Folder:"), sg.In(size=(25,1), enable_events=True, key=PIC_SAVE_FOLDER_KEY), sg.FolderBrowse()]
+                     [sg.Text("Save Images to Folder:"), sg.In(size=(25,1), enable_events=True, key=PIC_SAVE_FOLDER_KEY), sg.FolderBrowse()],
+                     [sg.Text("Exposure Mode:"),sg.InputText(EXPOSURE_MODE, size=(10, 1), enable_events=True, key=EXPOSURE_MODE_KEY),
+                      sg.Text("Expo Settle Time (in sec):"), sg.InputText(EXPO_SETTLE_TIME, size=(5, 1),key=EXPO_SETTLE_TIME_KEY), sg.Button(SET_EXPOSURE_MODE)]
                    ]
     
     # Z Stack Tab
@@ -1153,7 +1364,7 @@ def main():
                               sg.Tab("Tab 4 (Z Stack)", tab_4_layout),
                               sg.Tab("Tab 5 (Camera Preview)", tab_5_layout)]])
                ],
-               [sg.Button("Pic"), sg.Button("Vid")]
+               [sg.Button("Pic"), sg.Button("Vid"), sg.Button("Pic x 10")]
              ]
     
     # Setup Camera Preview Pseudo Window
@@ -1222,7 +1433,7 @@ def main():
             move_window_pid(preview_win_id, x_new, y_new)
             
             # Start Camera Too PREVIEW_LOC_X, PREVIEW_LOC_Y, PREVIEW_WIDTH, PREVIEW_HEIGHT, PREVIEW_ALPHA
-            camera.start_preview(alpha=PREVIEW_ALPHA, fullscreen=False, window=(PREVIEW_LOC_X, PREVIEW_LOC_Y, PREVIEW_WIDTH, PREVIEW_HEIGHT))
+            camera.start_preview(alpha=PREVIEW_ALPHA, fullscreen=False, window=(PREVIEW_LOC_X, y_new + PREVIEW_WINDOW_OFFSET, PREVIEW_WIDTH, PREVIEW_HEIGHT))
             
             # Change is_initial_startup to False
             is_initial_startup = False
@@ -1323,24 +1534,9 @@ def main():
             
         elif event == "Pic":
             print("You Pushed Pic Button")
+            get_picture(camera)
             # TODO: Change variables here to Global to match changes in Camera Tab
             # Take a Picture, 12MP: 4056x3040
-            pic_width = PIC_WIDTH
-            pic_height = PIC_HEIGHT
-            unique_id = get_unique_id()
-            pic_save_name = f"test_{unique_id}_{pic_width}x{pic_height}.jpg"
-            
-            camera.resolution = (pic_width, pic_height)
-            # camera.resolution = (2592, 1944)
-            
-            pic_save_full_path = f"{PIC_SAVE_FOLDER}/{pic_save_name}"
-            
-            camera.capture(pic_save_full_path)
-            
-            print(f"Saved Image: {pic_save_full_path}")
-            
-            # Return to streaming resolution: 640 x 480 (or it will crash)
-            camera.resolution = (VID_WIDTH, VID_HEIGHT)
             
             """
             # Display image with OpenCV (Keeps Crashing)
@@ -1362,6 +1558,12 @@ def main():
                 # output = (stream.demosaic() >> 2).astype(np.uint8)
                 #with open('image.data', 'wb') as f:
                     # output.tofile(f)
+                    # output.tofile(f)
+        elif event == "Pic x 10":
+            print("Pic x 10")
+            x = 10
+            delay_seconds = 5
+            get_x_pictures(x, delay_seconds, camera)
             
         elif event == "Vid":
             print("You Pushed Vid Button")
@@ -1458,6 +1660,9 @@ def main():
         elif event == STOP_PREVIEW:
             print("Stopping Preview")
             camera.stop_preview()
+        elif event == SET_EXPOSURE_MODE:
+            set_exposure_mode(event, values, window, camera)
+            # setup_picture_camera_settings(camera)
         if event == PIC_SAVE_FOLDER_KEY:
             save_folder = values[PIC_SAVE_FOLDER_KEY]
             print(f"Save folder: {save_folder}")
