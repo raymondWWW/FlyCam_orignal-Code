@@ -54,6 +54,7 @@ Q4: Repeat Q1 and Q2 for different scaled outputs: 20% and 2%.
 
 Code Sources:
 https://datagy.io/python-pretty-print-dictionary/
+https://www.geeksforgeeks.org/how-to-create-dataframe-from-dictionary-in-python-pandas/
 """
 
 
@@ -123,6 +124,13 @@ def get_rgbc_non_prf(number_of_cycles):
     # Real World: Would get each value separately.
     FREQ_HEADER = non_prf_keys[0]
     TIME_HEADER = non_prf_keys[1]
+
+    # color_keys = ['red', 'green', 'blue', 'clear']
+    RED_HEADER = color_keys[0]
+    GRN_HEADER = color_keys[1]
+    BLU_HEADER = color_keys[2]
+    CLR_HEADER = color_keys[3]
+
     # Simulated:
     # use random number generator to get frequency
     # get elapsed time formula: time = number_of_cycles / frequency
@@ -135,6 +143,27 @@ def get_rgbc_non_prf(number_of_cycles):
         for col in non_prf_keys:
             results[key][col] = ""
 
+    # Real World Data Collection [Change this when doing actual, test it]
+    for key in color_keys:
+
+        if key == RED_HEADER:
+            # Get Red Data, freq and time
+            pass
+        elif key == GRN_HEADER:
+            # Get Green Data, freq and time
+            pass
+        elif key == BLU_HEADER:
+            # Get Blue Data, freq and time
+            pass
+        elif key == CLR_HEADER:
+            # Get Blue Data, freq and time
+            pass
+
+        # results[key][FREQ_HEADER] = freq
+        # results[key][TIME_HEADER] = time
+
+
+    # Simulated Data Collection
     for key in color_keys:
 
         freq = random.randint(8000, 24000)
@@ -201,6 +230,8 @@ def get_q1_data(number_of_trials):
 
 def main():
     number_of_trials = 100 # How many attempts to get RGBC frequency values.
+    # Get Question 1 Data
+    get_q1_data(number_of_trials)
 
     # time_to_wait = 1
     # get_rbgc_prf(time_to_wait)
