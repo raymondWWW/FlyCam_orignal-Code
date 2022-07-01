@@ -84,6 +84,7 @@ fixed_cycles = [10]
 
 # Q2
 fixed_times = [2.0, 1.0, 0.75, 0.5, 0.25, 0.1]
+# fixed_times = [2.0]
 
 
 def gen_prf_data():
@@ -96,24 +97,47 @@ def gen_prf_data():
 # Get RGBC PRF, input: time to wait.
 # Simulated data creation
 def get_rbgc_prf(time_to_wait):
-    print("get_rbgc_prf")
+    # print("get_rbgc_prf")
 
     # Real world:
     # each color would get each value separately: number_of_cycles, external_time, and internal_time
-    for keys in color_keys:
-        print(keys)
-        print(gen_prf_data())
+
+    results = {}
+    # Populate dict:
+    for color in color_keys:
+        results[color] = {}
+        for header in prf_keys:
+            results[color][header] = []
+
+    # print(json.dumps(results, indent=4))
+
+    # Simulated Data
+    for color in color_keys:
+        # prf_keys = ["number_of_cycles", "external_time", "internal_time", "freq_ext", "freq_int", "freq_expected"]
+        # print(color)
+        # print(gen_prf_data())
+        # **** When Doing Real World Version, use if/else statement to get specific colors, like in non-PRF ****
+        number_of_cycles, external_time, internal_time = gen_prf_data()
+        freq_ext = number_of_cycles / external_time
+        freq_int = number_of_cycles / internal_time
+        freq_expected = number_of_cycles / time_to_wait
         # Get data for each color
         # Calculate freq_ext, freq_int, freq_expected
+        results[color][prf_keys[0]] = number_of_cycles
+        results[color][prf_keys[1]] = external_time
+        results[color][prf_keys[2]] = internal_time
+        results[color][prf_keys[3]] = freq_ext
+        results[color][prf_keys[4]] = freq_int
+        results[color][prf_keys[5]] = freq_expected
 
+    # print(json.dumps(results, indent=4))
     # Simulated data:
     # random cycles, ext_time, int_time
     # Calculated freq_ext, freq_int, freq_expected
 
-
     # End result, dictionary of dictionary.
     # First layer, keys are colors. Second layer, keys are the data above
-    pass
+    return results
 
 
 # Get RGBC non-PRF, input: number of cycles
@@ -177,6 +201,11 @@ def get_rgbc_non_prf(number_of_cycles):
 
 
 def get_q1_data(number_of_trials):
+    # Q1, data to collect:
+    # - Number of cycles for RGBC, fixed. Cycles: 10, 100, 1000, 10k, 20k, 30k
+    # - Elapsed time for RBC, same fixed cycles.
+    # - Calculated: Frequency for RGBC: fixed cycles / elapsed time
+
     # Q1 Algorithm
     # Create list of fixed cycles to try
     # For loop to go through each element in fixed cycles
@@ -228,10 +257,58 @@ def get_q1_data(number_of_trials):
     pass
 
 
+def get_q2_data(number_of_trials):
+    # Q2 Algorithm
+    # Create list of fixed times to try
+    # For loop to go through each element in fixed_times
+    for time in fixed_times:
+        print("*****************")
+        print(f"PRF, Test Fixed Times: {time} seconds")
+        # Create dictionary of dictionaries to store data, use color_keys and prf_keys, call this prf_data_dict
+        prf_data_dict = {}
+        for color in color_keys:
+            prf_data_dict[color] = {}
+            for header in prf_keys:
+                prf_data_dict[color][header] = []
+
+        # Print Placeholder/shell of prf_data_dict, pretty version
+        # print(json.dumps(prf_data_dict, indent=4))
+        #  For loop to go through 100 trials for that fixed time
+        for i in range(number_of_trials):
+            print(f"Trial {i}/{number_of_trials}")
+            #  Collect RGBC PRF data and calculated data
+            # ***** For Real World, Change the next line *****
+            row_dict = get_rbgc_prf(time)
+            for color in color_keys:
+                for header in prf_keys:
+                    #  use keys of collected data to match keys in prf_data_dict, store in lists with associated key
+                    prf_data_dict[color][header].append(row_dict[color][header])
+        #  Done with 100 trials
+
+        # print(json.dumps(prf_data_dict, indent=4))
+        #   Go through keys of prf_data_dict with for loop
+        for color in color_keys:
+            temp = prf_data_dict[color]
+            # load data into dataframe
+            df = pd.DataFrame(temp)
+            # print(df)
+
+            #  save to csv, filename format: PRF_red_1.0_seconds.csv
+            save_filename = f"PRF_{color}_{time}_seconds.csv"
+            print(f"save_filename: {save_filename}")
+
+            # Save to CSV
+            df.to_csv(save_filename)
+    pass
+
+
 def main():
     number_of_trials = 100 # How many attempts to get RGBC frequency values.
     # Get Question 1 Data
-    get_q1_data(number_of_trials)
+    # get_q1_data(number_of_trials)
+
+    # Get Question 2 Data
+    # get_q2_data(number_of_trials)
 
     # time_to_wait = 1
     # get_rbgc_prf(time_to_wait)
@@ -239,27 +316,6 @@ def main():
     # number_of_cycles = 10
     # get_rgbc_non_prf(number_of_cycles)
 
-    # Q1, data to collect:
-    # - Number of cycles for RGBC, fixed. Cycles: 10, 100, 1000, 10k, 20k, 30k
-    # - Elapsed time for RBC, same fixed cycles.
-    # - Calculated: Frequency for RGBC: fixed cycles / elapsed time
-
-
-
-    # Q2 Algorithm
-    # Create list of fixed times to try
-    # For loop to go through each element in fixed_times
-    #  Create dictionary of dictionaries to store data, use color_keys and prf_keys, call this prf_data_dict
-    #   For loop to go through 100 trials for that fixed time
-    #     Collect RGBC PRF data and calculated data
-    #     use keys of collected data to match keys in prf_data_dict, store in lists with associated key
-    #   Done with 100 trials
-    #   Go through keys of prf_data_dict with for loop
-    #     load data into dataframe
-    #     save to csv, filename format: PRF_red_1.0_seconds.csv
-    #     color_keys = ['red', 'green', 'blue', 'clear']
-    #     prf_keys = ["number_of_cycles", "external_time", "internal_time", "freq_ext", "freq_int", "freq_expected"]
-    #
 
 
     pass
