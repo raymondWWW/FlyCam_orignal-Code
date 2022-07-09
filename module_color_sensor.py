@@ -6,9 +6,10 @@ To be used by the GUI
 import csv
 import json
 import pandas as pd
-import random
+import PySimpleGUI as sg
 
-import RPi.GPIO as GPIO
+# TODO: Uncomment when actually running module in GUI
+# import RPi.GPIO as GPIO
 import time
 
 import os
@@ -38,8 +39,19 @@ TEMP_FOLDER = r"/home/pi/Projects/3dprinter_sampling/temp"
 TEMP_FILE = r"temp_loc_color.csv"
 TEMP_FULL_PATH = os.path.join(TEMP_FOLDER, TEMP_FILE)
 
+# GUI CONSTANTS
+# [sg.Button("Setup Color Sensor"), sg.Button("Get Color")],
+# [sg.Button("Save Color"), sg.Button("Stop Color Sensor")]
+SETUP_COLOR_SENSOR = "Setup Color Sensor"
+GET_COLOR = "Get Color"
+SAVE_COLOR = "Save Color"
+STOP_COLOR_SENSOR = "Stop Color Sensor"
+
+# Color Sensor Event List for checking if a button is pressed
+COLOR_SENSOR_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
 
 
+# ------- COLOR SENSOR FUNCTIONS -------
 def color_sensor_setup():
     print("Setting up Color Sensor Pins")
     
@@ -56,6 +68,7 @@ def color_sensor_setup():
     print("\n")
 
 
+# Output Frequency Settings
 def set_100_output():
     print("Setting 100% Output Frequency")
     # 100% Output Frequency Scaling: S0: High, S1: High
@@ -225,9 +238,8 @@ def get_clear_prf(time_to_wait):
     return num_cycles, duration_external, elapsed_time
 
 
-
 # Get RGBC PRF, input: time to wait.
-# Simulated data creation
+# Manager function that grabs all RGBC colors
 def get_rbgc_prf(time_to_wait):
     # print("get_rbgc_prf")
 
@@ -242,23 +254,21 @@ def get_rbgc_prf(time_to_wait):
             results[color][header] = []
 
     # print(json.dumps(results, indent=4))
-    
+
+    # Initialize number_of_cycles, external_time, internal_time to -1, if detected, then color capture failed
+    number_of_cycles, external_time, internal_time = -1
     # Real Version
     for color in color_keys:
         # color_keys = ['red', 'green', 'blue', 'clear']
         print(f"Getting color: {color}")
         if color == 'red':
             number_of_cycles, external_time, internal_time = get_red_prf(time_to_wait)
-            pass
         elif color == 'green':
             number_of_cycles, external_time, internal_time = get_green_prf(time_to_wait)
-            pass
         elif color == 'blue':
             number_of_cycles, external_time, internal_time = get_blue_prf(time_to_wait)
-            pass
         elif color == 'clear':
             number_of_cycles, external_time, internal_time = get_clear_prf(time_to_wait)
-            pass
         
         freq_ext = number_of_cycles / external_time
         freq_int = number_of_cycles / internal_time
@@ -272,10 +282,13 @@ def get_rbgc_prf(time_to_wait):
         results[color][prf_keys[4]] = freq_int
         results[color][prf_keys[5]] = freq_expected
 
+        if number_of_cycles == -1:
+            print("***** WARNING: COLOR DETECTION FAILED ******")
+
     return results
 
 
-# Functions for GUI stuff
+# ------- GUI FUNCTIONs -------
 
 # Setup temp CSV file to save location and colors to.
 def setup_temp_folder_and_csv():
@@ -295,6 +308,7 @@ def setup_temp_folder_and_csv():
         headers.append(color)
     writer.writerow(headers)
     f.close()
+
 
 # Save loc/color to CSV
 def save_color_to_csv(loc_dict):
@@ -328,3 +342,43 @@ def save_color_to_csv(loc_dict):
     pass
 
 
+def get_gui_tab_layout():
+    tab_layout = [
+                    [sg.Button("Setup Color Sensor"), sg.Button("Get Color")],
+                    [sg.Button("Save Color"), sg.Button("Stop Color Sensor")]
+                  ]
+    return tab_layout
+
+
+def color_sensor_event_manager(event, values, window):
+
+    # COLOR_SENSOR_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+
+    # TODO: Add in x and y color saver. Go in x direction from start to finish, collecting color. Similar to z Stack creator
+    # TODO: Choose folder location to save CSV file?
+    # TODO: How to save moving 3D printer if this module is for color sensor only.
+
+    pass
+
+
+def main():
+
+    sg.theme("LightGreen")
+
+    layout = get_gui_tab_layout()
+
+    window = sg.Window("Color Sensor", layout)
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WIN_CLOSED:
+            break
+        elif event in COLOR_SENSOR_EVENT_LIST:
+            print("Found a Color Sensor Event")
+
+    pass
+
+
+if __name__ == "__main__":
+    main()
