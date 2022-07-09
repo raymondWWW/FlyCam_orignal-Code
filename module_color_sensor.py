@@ -48,7 +48,13 @@ SAVE_COLOR = "Save Color"
 STOP_COLOR_SENSOR = "Stop Color Sensor"
 
 # Color Sensor Event List for checking if a button is pressed
-COLOR_SENSOR_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+COLOR_SENSOR_ALL_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+
+# Non-Printer Events
+COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
+
+# Printer Events (Events requiring printer control)
+COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR]
 
 
 # ------- COLOR SENSOR FUNCTIONS -------
@@ -343,20 +349,76 @@ def save_color_to_csv(loc_dict):
 
 
 def get_gui_tab_layout():
+
     tab_layout = [
-                    [sg.Button("Setup Color Sensor"), sg.Button("Get Color")],
-                    [sg.Button("Save Color"), sg.Button("Stop Color Sensor")]
+                    [sg.Button(SETUP_COLOR_SENSOR), sg.Button(GET_COLOR)],
+                    [sg.Button(SAVE_COLOR), sg.Button(STOP_COLOR_SENSOR)]
                   ]
     return tab_layout
 
 
-def color_sensor_event_manager(event, values, window):
-
+def color_sensor_event_manager_non_printer(event, values, window):
+    print("color_sensor_event_manager_non_printer")
     # COLOR_SENSOR_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
 
     # TODO: Add in x and y color saver. Go in x direction from start to finish, collecting color. Similar to z Stack creator
     # TODO: Choose folder location to save CSV file?
     # TODO: How to save moving 3D printer if this module is for color sensor only.
+
+    # Color Sensor stuff
+    if event == SETUP_COLOR_SENSOR:
+        print("You pressed Setup Color Sensor")
+        # color_sensor_setup()
+        # set_100_output()
+        # setup_temp_folder_and_csv()
+    elif event == GET_COLOR:
+        print("You pressed Get Color")
+        # colors = get_rbgc_prf(TIME_TO_WAIT)
+        # print(colors)
+    elif event == STOP_COLOR_SENSOR:
+        print("You pressed Stop Color Sensor")
+        # end_program()
+    pass
+
+
+# Sample function to be placed into the Main GUI or anything that needs printer control
+def color_sensor_event_manager_printer(event, values, window):
+    print("color_sensor_event_manager_printer")
+    # # Color Sensor Event List for checking if a button is pressed
+    # COLOR_SENSOR_ALL_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+    #
+    # # Non-Printer Events
+    # COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
+    #
+    # # Printer Events (Events requiring printer control)
+    # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR]
+
+    if event == SAVE_COLOR:
+        print("You pressed Save Color")
+        # Need to figure out the logic here, probably put it in the main gui.
+        # loc_dict = get_current_location2()
+        # save_color_to_csv(loc_dict)
+    pass
+
+
+# Sample function to be placed into the Main GUI or anything that directs to printer and non-printer controls
+def color_sensor_event_super_manager(event, values, window):
+    print("color_sensor_event_super_manager")
+    # # Color Sensor Event List for checking if a button is pressed
+    # COLOR_SENSOR_ALL_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+    #
+    # # Non-Printer Events
+    # COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
+    #
+    # # Printer Events (Events requiring printer control)
+    # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR]
+
+    if event in COLOR_SENSOR_NON_PRINTER_EVENT_LIST:
+        print("Non Printer Events Detected")
+        color_sensor_event_manager_non_printer(event, values, window)
+    elif event in COLOR_SENSOR_PRINTER_EVENT_LIST:
+        print("Printer Events Detected")
+        color_sensor_event_manager_printer(event, values, window)
 
     pass
 
@@ -374,8 +436,8 @@ def main():
 
         if event == sg.WIN_CLOSED:
             break
-        elif event in COLOR_SENSOR_EVENT_LIST:
-            print("Found a Color Sensor Event")
+        elif event in COLOR_SENSOR_ALL_EVENT_LIST:
+            color_sensor_event_super_manager(event, values, window)
 
     pass
 
