@@ -1248,6 +1248,7 @@ def main():
     path_list = printer.get_path_list_csv(csv_filename)
     printer.initial_setup(path_list)
     
+    
     # Move Extruder Out Of The Way
     x_start = 0
     y_start = C.Y_MAX
