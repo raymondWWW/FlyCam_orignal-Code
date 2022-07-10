@@ -2,11 +2,21 @@
 Module for Color Sensor
 
 To be used by the GUI
+
+Code Sources:
+https://www.geeksforgeeks.org/how-to-set-the-spacing-between-subplots-in-matplotlib-in-python/
+https://matplotlib.org/stable/gallery/pyplots/fig_axes_labels_simple.html
+https://www.geeksforgeeks.org/numpy-arrange-in-python/
+
 """
 import csv
 import json
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import PySimpleGUI as sg
+
+import random
 
 # TODO: Uncomment when actually running module in GUI
 # import RPi.GPIO as GPIO
@@ -14,6 +24,8 @@ import time
 
 import os
 from os.path import join
+
+from datetime import datetime
 
 # Sensor Pins, Broadcom (BCM) Numbering System
 # Use the number after GPIO
@@ -28,7 +40,12 @@ S1 = 20
 # OE
 
 color_keys = ['red', 'green', 'blue', 'clear']
+loc_keys = ["x", "y", "z"]
 prf_keys = ["number_of_cycles", "external_time", "internal_time", "freq_ext", "freq_int", "freq_expected"]
+RED = color_keys[0]; GRN = color_keys[1]; BLU = color_keys[2]; CLR = color_keys[3]
+X = loc_keys[0]; Y = loc_keys[1]; Z = loc_keys[2]
+NUM_CYCLES = prf_keys[0]
+FREQ_EXP = prf_keys[5]
 
 TIME_TO_WAIT = 1 # 1 second to count cycles
 
@@ -60,6 +77,7 @@ Y_INC_KEY = "-Y INC-"
 
 # For choosing save folder location for colors/printerLocations CSV
 COLOR_SAVE_FOLDER_KEY = "-Color Save Folder-"
+COLOR_SAVE_DEFAULT_FOLDER = r'D:\Projects\3dprinter_sampling\testing\Color Sensor'
 
 # Non-Printer Events
 COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
@@ -69,6 +87,10 @@ COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR, X_LOOP_BUTTON, Y_LOOP_BUTTON]
 
 # Color Sensor Event List for checking if a button is pressed
 COLOR_SENSOR_ALL_EVENT_LIST = []
+
+# For Plots
+MAX_ROW = 2
+MAX_COL = 2
 
 
 def populate_color_sensor_all_event_list():
@@ -464,12 +486,108 @@ def color_sensor_event_manager_printer(event, values, window):
     # # Printer Events (Events requiring printer control)
     # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR, X_LOOP_BUTTON, Y_LOOP_BUTTON]
 
+    # Create only 1 figure (num=1), and clear the plot so it can be reused
+    # Helps prevent memory leaks, but may be annoying since you may want to see previous plots.
+    fig, axs = plt.subplots(MAX_ROW, MAX_COL, constrained_layout=True, num=1, clear=True)
+
     if event == SAVE_COLOR:
         print("You pressed Save Color")
         # Need to figure out the logic here, probably put it in the main gui.
         # loc_dict = get_current_location2()
         # save_color_to_csv(loc_dict)
+    elif event == X_LOOP_BUTTON:
+        # X_START_KEY = "-X START-"
+        # X_END_KEY = "-X END-"
+        # X_INC_KEY = "-X INC-"
+        print(f"You pressed: {X_LOOP_BUTTON}")
+        # TODO: Add in plot function for both
+        # Algorithm:
+        start = float(values[X_START_KEY])
+        end = float(values[X_END_KEY])
+        inc = float(values[X_INC_KEY])
+        # Take start/end/inc
+        # TODO: Get Current Location
+        # Dummy Data for y/z
+        y = 0
+        z = 0
+        # TODO: Move to first location
+        # initialize_data_dict()
+        data_dict = initialize_data_dict()
+        # Run for loop going through that
+        for x in np.arange(start, end+inc, inc):
+            # print(x)
+            # TODO: Move Printer to location
+            # TODO: Wait sleep time
+            # Get Color
+            # Get current location?
+            # Append color and location to dictionary lists.
+            data_dict[X].append(x)
+            data_dict[Y].append(y)
+            data_dict[Z].append(z)
+
+            # Dummy data
+            data_dict[RED].append(random.randint(8000, 24000))
+            data_dict[BLU].append(random.randint(8000, 24000))
+            data_dict[GRN].append(random.randint(8000, 24000))
+            data_dict[CLR].append(random.randint(8000, 24000))
+
+        # At end of loop, create dataframe, save to file
+        df = pd.DataFrame.from_dict(data_dict)
+        # print(df)
+
+        # Get Save Folder
+        save_folder = values[COLOR_SAVE_FOLDER_KEY]
+        save_file_name = f"color_loc_{get_unique_id()}.csv"
+
+        # Create save full path
+        save_full_path = join(save_folder, save_file_name)
+        print(f"save_full_path: {save_full_path}")
+
+        # Save to CSV
+        df.to_csv(save_full_path)
+
+        x_axis = df[X]
+        counter = 0
+        for i in range(MAX_ROW):
+            # Plot dataframe
+            for j in range(MAX_COL):
+                color = color_keys[counter]
+                y_axis = df[color]
+                # plt.figure(clear=True)
+                axs[i, j].scatter(x_axis, y_axis)
+                axs[i, j].set_title(f"{color} freq")
+                axs[i, j].set_xlabel(f"x loc (mm)")
+                counter += 1
+
+        plt.suptitle("RGBC Location vs Color Frequency")
+        plt.show(block=False)
+
+    elif event == Y_LOOP_BUTTON:
+        print(f"You pressed: {Y_LOOP_BUTTON}")
     pass
+
+
+# For saving color and location data
+def initialize_data_dict():
+    # Initialize Data Dictionart to store location and color data
+    # Format: data_dict = {"x": [], "y": [], "z": [], "red": [], "green": [], "blue": [], "clear": []}
+    data_dict = {}
+    for loc in loc_keys:
+        data_dict[loc] = []
+
+    for color in color_keys:
+        data_dict[color] = []
+
+    # print(data_dict)
+    return data_dict
+
+
+# Define function to create unique text string using date and time.
+def get_unique_id():
+    current_time = datetime.now()
+    unique_id = current_time.strftime("%Y-%m-%d_%H%M%S")
+    # print(f"unique_id: {unique_id}")
+    return unique_id
 
 
 # Sample function to be placed into the Main GUI or anything that directs to printer and non-printer controls
@@ -533,7 +651,7 @@ def get_save_folder_row():
     save_folder_key = COLOR_SAVE_FOLDER_KEY
     save_input_folder_size = (25, 1)
     save_folder_row = [sg.Text(save_folder_text),
-                       sg.In(size=save_input_folder_size, enable_events=True, key=save_folder_key),
+                       sg.In(COLOR_SAVE_DEFAULT_FOLDER, size=save_input_folder_size, enable_events=True, key=save_folder_key),
                        sg.FolderBrowse()
                        ]
     return save_folder_row
@@ -542,6 +660,8 @@ def get_save_folder_row():
 def main():
 
     populate_color_sensor_all_event_list()
+
+
 
     sg.theme("LightGreen")
 
