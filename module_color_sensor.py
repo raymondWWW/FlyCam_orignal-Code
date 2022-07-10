@@ -486,85 +486,185 @@ def color_sensor_event_manager_printer(event, values, window):
     # # Printer Events (Events requiring printer control)
     # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR, X_LOOP_BUTTON, Y_LOOP_BUTTON]
 
-    # Create only 1 figure (num=1), and clear the plot so it can be reused
-    # Helps prevent memory leaks, but may be annoying since you may want to see previous plots.
-    fig, axs = plt.subplots(MAX_ROW, MAX_COL, constrained_layout=True, num=1, clear=True)
-
     if event == SAVE_COLOR:
         print("You pressed Save Color")
         # Need to figure out the logic here, probably put it in the main gui.
         # loc_dict = get_current_location2()
         # save_color_to_csv(loc_dict)
-    elif event == X_LOOP_BUTTON:
-        # X_START_KEY = "-X START-"
-        # X_END_KEY = "-X END-"
-        # X_INC_KEY = "-X INC-"
-        print(f"You pressed: {X_LOOP_BUTTON}")
-        # TODO: Add in plot function for both
-        # Algorithm:
-        start = float(values[X_START_KEY])
-        end = float(values[X_END_KEY])
-        inc = float(values[X_INC_KEY])
-        # Take start/end/inc
-        # TODO: Get Current Location
-        # Dummy Data for y/z
-        y = 0
-        z = 0
-        # TODO: Move to first location
-        # initialize_data_dict()
-        data_dict = initialize_data_dict()
-        # Run for loop going through that
-        for x in np.arange(start, end+inc, inc):
-            # print(x)
-            # TODO: Move Printer to location
-            # TODO: Wait sleep time
-            # Get Color
-            # Get current location?
-            # Append color and location to dictionary lists.
-            data_dict[X].append(x)
-            data_dict[Y].append(y)
-            data_dict[Z].append(z)
+    elif event in [X_LOOP_BUTTON, Y_LOOP_BUTTON]:
+        printer_loop(event, values, window)
 
-            # Dummy data
-            data_dict[RED].append(random.randint(8000, 24000))
-            data_dict[BLU].append(random.randint(8000, 24000))
-            data_dict[GRN].append(random.randint(8000, 24000))
-            data_dict[CLR].append(random.randint(8000, 24000))
 
-        # At end of loop, create dataframe, save to file
-        df = pd.DataFrame.from_dict(data_dict)
-        # print(df)
+def printer_loop(event, values, window):
+    # Assumes X_LOOP and Y_LOOP events were already checked
 
-        # Get Save Folder
-        save_folder = values[COLOR_SAVE_FOLDER_KEY]
-        save_file_name = f"color_loc_{get_unique_id()}.csv"
+    # Create only 1 figure (num=1), and clear the plot so it can be reused
+    # Helps prevent memory leaks, but may be annoying since you may want to see previous plots.
+    fig, axs = plt.subplots(MAX_ROW, MAX_COL, constrained_layout=True, num=1, clear=True)
 
-        # Create save full path
-        save_full_path = join(save_folder, save_file_name)
-        print(f"save_full_path: {save_full_path}")
-
-        # Save to CSV
-        df.to_csv(save_full_path)
-
-        x_axis = df[X]
-        counter = 0
-        for i in range(MAX_ROW):
-            # Plot dataframe
-            for j in range(MAX_COL):
-                color = color_keys[counter]
-                y_axis = df[color]
-                # plt.figure(clear=True)
-                axs[i, j].scatter(x_axis, y_axis)
-                axs[i, j].set_title(f"{color} freq")
-                axs[i, j].set_xlabel(f"x loc (mm)")
-                counter += 1
-
-        plt.suptitle("RGBC Location vs Color Frequency")
-        plt.show(block=False)
-
+    if event == X_LOOP_BUTTON:
+        printer_x_loop(event, values, window, fig, axs)
     elif event == Y_LOOP_BUTTON:
-        print(f"You pressed: {Y_LOOP_BUTTON}")
+        printer_y_loop(event, values, window, fig, axs)
+    # May need a Z_LOOP_BUTTON in the future
     pass
+
+
+def printer_x_loop(event, values, window, fig, axs):
+    print(f"You pressed: {X_LOOP_BUTTON}")
+    # TODO: Add in plot function for both
+    # Algorithm:
+    start = float(values[X_START_KEY])
+    end = float(values[X_END_KEY])
+    inc = float(values[X_INC_KEY])
+    # Take start/end/inc
+    # TODO: Get Current Location
+    # Dummy Data for y/z
+    y = 0
+    z = 0
+    # TODO: Move to first location
+    # initialize_data_dict()
+    data_dict = initialize_data_dict()
+    # Run for loop going through that
+    for x in np.arange(start, end+inc, inc):
+        # print(x)
+        # TODO: Move Printer to location
+        # TODO: Wait sleep time
+        # Get Color
+        # Get current location?
+        # Append color and location to dictionary lists.
+        data_dict[X].append(x)
+        data_dict[Y].append(y)
+        data_dict[Z].append(z)
+
+        # Dummy data
+        data_dict[RED].append(random.randint(8000, 24000))
+        data_dict[BLU].append(random.randint(8000, 24000))
+        data_dict[GRN].append(random.randint(8000, 24000))
+        data_dict[CLR].append(random.randint(8000, 24000))
+
+    # At end of loop, create dataframe, save to file
+    df = pd.DataFrame.from_dict(data_dict)
+    # print(df)
+
+    # Get Save Folder
+    save_folder = values[COLOR_SAVE_FOLDER_KEY]
+    save_file_name = f"color_loc_{get_unique_id()}.csv"
+
+    # Create save full path
+    save_full_path = join(save_folder, save_file_name)
+    print(f"save_full_path: {save_full_path}")
+
+    # Save to CSV
+    df.to_csv(save_full_path)
+
+    # Show 4 RGBC Freq plots on on plot
+
+    # Get x-axis data, will always to x location
+    x_axis = df[X]
+
+    # Init counter variable for getting color key
+    counter = 0
+
+    # Populate each of the subplots (should be a 2x2)
+    for i in range(MAX_ROW):
+        # Plot dataframe
+        for j in range(MAX_COL):
+            # Grab Color Key
+            color = color_keys[counter]
+
+            # Grab frequency values from the color column
+            # Note: Is different from how the results is outputted!
+            y_axis = df[color]
+
+            # Create scatter plot
+            axs[i, j].scatter(x_axis, y_axis)
+            axs[i, j].set_title(f"{color} freq")
+            xlabel_text = f"x loc (mm)"
+            axs[i, j].set_xlabel(xlabel_text)
+            counter += 1
+
+    plt.suptitle("RGBC Location vs Color Frequency")
+    # Show plot, but allow GUI to continue to work.
+    plt.show(block=False)
+
+
+def printer_y_loop(event, values, window, fig, axs):
+    print(f"You pressed: {Y_LOOP_BUTTON}")
+    # Algorithm:
+    start = float(values[Y_START_KEY])
+    end = float(values[Y_END_KEY])
+    inc = float(values[Y_INC_KEY])
+    # Take start/end/inc
+    # TODO: Get Current Location
+    # Dummy Data for y/z
+    x = 0
+    z = 0
+    # TODO: Move to first location
+    # initialize_data_dict()
+    data_dict = initialize_data_dict()
+    # Run for loop going through that
+    for y in np.arange(start, end+inc, inc):
+        # print(x)
+        # TODO: Move Printer to location
+        # TODO: Wait sleep time
+        # Get Color
+        # Get current location?
+        # Append color and location to dictionary lists.
+        data_dict[X].append(x)
+        data_dict[Y].append(y)
+        data_dict[Z].append(z)
+
+        # Dummy data
+        data_dict[RED].append(random.randint(8000, 24000))
+        data_dict[BLU].append(random.randint(8000, 24000))
+        data_dict[GRN].append(random.randint(8000, 24000))
+        data_dict[CLR].append(random.randint(8000, 24000))
+
+    # At end of loop, create dataframe, save to file
+    df = pd.DataFrame.from_dict(data_dict)
+    # print(df)
+
+    # Get Save Folder
+    save_folder = values[COLOR_SAVE_FOLDER_KEY]
+    save_file_name = f"color_loc_{get_unique_id()}.csv"
+
+    # Create save full path
+    save_full_path = join(save_folder, save_file_name)
+    print(f"save_full_path: {save_full_path}")
+
+    # Save to CSV
+    df.to_csv(save_full_path)
+
+    # Show 4 RGBC Freq plots on on plot
+
+    # Get x-axis data, will always to x location
+    x_axis = df[Y]
+
+    # Init counter variable for getting color key
+    counter = 0
+
+    # Populate each of the subplots (should be a 2x2)
+    for i in range(MAX_ROW):
+        # Plot dataframe
+        for j in range(MAX_COL):
+            # Grab Color Key
+            color = color_keys[counter]
+
+            # Grab frequency values from the color column
+            # Note: Is different from how the results is outputted!
+            y_axis = df[color]
+
+            # Create scatter plot
+            axs[i, j].scatter(x_axis, y_axis)
+            axs[i, j].set_title(f"{color} freq")
+            xlabel_text = f"y loc (mm)"
+            axs[i, j].set_xlabel(xlabel_text)
+            counter += 1
+
+    plt.suptitle("RGBC Location vs Color Frequency")
+    # Show plot, but allow GUI to continue to work.
+    plt.show(block=False)
 
 
 # For saving color and location data
@@ -659,9 +759,9 @@ def get_save_folder_row():
 
 def main():
 
+    # Sample GUI for testing
+
     populate_color_sensor_all_event_list()
-
-
 
     sg.theme("LightGreen")
 
