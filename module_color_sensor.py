@@ -47,14 +47,40 @@ GET_COLOR = "Get Color"
 SAVE_COLOR = "Save Color"
 STOP_COLOR_SENSOR = "Stop Color Sensor"
 
-# Color Sensor Event List for checking if a button is pressed
-COLOR_SENSOR_ALL_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, SAVE_COLOR, STOP_COLOR_SENSOR]
+# Loop Control GUI Keys and Button
+X_LOOP_BUTTON = "Start X Loop"
+X_START_KEY = "-X START-"
+X_END_KEY = "-X END-"
+X_INC_KEY = "-X INC-"
+
+Y_LOOP_BUTTON = "Start Y Loop"
+Y_START_KEY = "-Y START-"
+Y_END_KEY = "-Y END-"
+Y_INC_KEY = "-Y INC-"
+
+# For choosing save folder location for colors/printerLocations CSV
+COLOR_SAVE_FOLDER_KEY = "-Color Save Folder-"
 
 # Non-Printer Events
 COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
 
 # Printer Events (Events requiring printer control)
-COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR]
+COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR, X_LOOP_BUTTON, Y_LOOP_BUTTON]
+
+# Color Sensor Event List for checking if a button is pressed
+COLOR_SENSOR_ALL_EVENT_LIST = []
+
+
+def populate_color_sensor_all_event_list():
+    global COLOR_SENSOR_ALL_EVENT_LIST
+
+    for non_printer in COLOR_SENSOR_NON_PRINTER_EVENT_LIST:
+        COLOR_SENSOR_ALL_EVENT_LIST.append(non_printer)
+
+    for printer in COLOR_SENSOR_PRINTER_EVENT_LIST:
+        COLOR_SENSOR_ALL_EVENT_LIST.append(printer)
+
+    # print(COLOR_SENSOR_ALL_EVENT_LIST)
 
 
 # ------- COLOR SENSOR FUNCTIONS -------
@@ -350,10 +376,55 @@ def save_color_to_csv(loc_dict):
 
 def get_gui_tab_layout():
 
+    x_loop_controls_dict = {
+                                "title": "Input X Range Color Capture Parameters (Units are in mm):",
+                                "size": (5, 1),
+                                "button": X_LOOP_BUTTON,
+                                "start": {
+                                    "text": "X Start:",
+                                    "key": X_START_KEY,
+                                    "default": "0"
+                                },
+                                "end": {
+                                    "text": "X End:",
+                                    "key": X_END_KEY,
+                                    "default": "2"
+                                },
+                                "inc": {
+                                    "text": "X Inc:",
+                                    "key": X_INC_KEY,
+                                    "default": "0.5"
+                                }
+                           }
+
+    y_loop_controls_dict = {
+                                "title": "Input Y Range Color Capture Parameters (Units are in mm):",
+                                "size": (5, 1),
+                                "button": Y_LOOP_BUTTON,
+                                "start": {
+                                    "text": "Y Start:",
+                                    "key": Y_START_KEY,
+                                    "default": "0"
+                                },
+                                "end": {
+                                    "text": "Y End:",
+                                    "key": Y_END_KEY,
+                                    "default": "2"
+                                },
+                                "inc": {
+                                    "text": "Y Inc:",
+                                    "key": Y_INC_KEY,
+                                    "default": "0.5"
+                                }
+                           }
+
     tab_layout = [
                     [sg.Button(SETUP_COLOR_SENSOR), sg.Button(GET_COLOR)],
-                    [sg.Button(SAVE_COLOR), sg.Button(STOP_COLOR_SENSOR)]
-                  ]
+                    [sg.Button(SAVE_COLOR), sg.Button(STOP_COLOR_SENSOR)],
+                    get_loop_controls_layout(x_loop_controls_dict),
+                    get_loop_controls_layout(y_loop_controls_dict),
+                    get_save_folder_row()
+                 ]
     return tab_layout
 
 
@@ -391,7 +462,7 @@ def color_sensor_event_manager_printer(event, values, window):
     # COLOR_SENSOR_NON_PRINTER_EVENT_LIST = [SETUP_COLOR_SENSOR, GET_COLOR, STOP_COLOR_SENSOR]
     #
     # # Printer Events (Events requiring printer control)
-    # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR]
+    # COLOR_SENSOR_PRINTER_EVENT_LIST = [SAVE_COLOR, X_LOOP_BUTTON, Y_LOOP_BUTTON]
 
     if event == SAVE_COLOR:
         print("You pressed Save Color")
@@ -423,7 +494,54 @@ def color_sensor_event_super_manager(event, values, window):
     pass
 
 
+# Generic loop control PySimpleGUI layout
+def get_loop_controls_layout(loop_controls_dict):
+
+    loop_control_title = loop_controls_dict["title"]
+
+    start_text = loop_controls_dict["start"]["text"]
+    start_key = loop_controls_dict["start"]["key"]
+    start_default = loop_controls_dict["start"]["default"]
+
+    end_text = loop_controls_dict["end"]["text"]
+    end_key = loop_controls_dict["end"]["key"]
+    end_default = loop_controls_dict["end"]["default"]
+
+    inc_text = loop_controls_dict["inc"]["text"]
+    inc_key = loop_controls_dict["inc"]["key"]
+    inc_default = loop_controls_dict["inc"]["default"]
+
+    input_text_size = loop_controls_dict["size"]
+
+    # Button Text (also works as Button Event)
+    start_button = loop_controls_dict["button"]
+
+    layout = [
+                [sg.Text(loop_control_title)],
+                [sg.Text(start_text), sg.InputText(start_default, size=input_text_size, enable_events=True, key=start_key),
+                 sg.Text(end_text), sg.InputText(end_default, size=input_text_size, enable_events=True, key=end_key),
+                 sg.Text(inc_text), sg.InputText(inc_default, size=input_text_size, enable_events=True, key=inc_key),
+                 sg.Button(start_button)
+                 ]
+             ]
+    return layout
+
+
+def get_save_folder_row():
+
+    save_folder_text = "Save Folder Location:"
+    save_folder_key = COLOR_SAVE_FOLDER_KEY
+    save_input_folder_size = (25, 1)
+    save_folder_row = [sg.Text(save_folder_text),
+                       sg.In(size=save_input_folder_size, enable_events=True, key=save_folder_key),
+                       sg.FolderBrowse()
+                       ]
+    return save_folder_row
+
+
 def main():
+
+    populate_color_sensor_all_event_list()
 
     sg.theme("LightGreen")
 
@@ -444,3 +562,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+else:
+    # Color Sensor Constants that need populating
+    populate_color_sensor_all_event_list()
