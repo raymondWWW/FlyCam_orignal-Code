@@ -2,22 +2,26 @@
 Module for setting how long to run experiment
 
 TODO:
-Two Different Times to keep track of:
--How long to keep collecting images (24 hours?)
--How much time to wait in between runs?
+-Create sample loop like Arduino?
+-Create sample loop using time.sleep?
 
+Changelog:
+7-19-2022: Added in functions to create layout, check for digits, and to collect time values.
 """
 
 import PySimpleGUI as sg
 
 
-DEFAULT_HOURS = "1"
-DEFAULT_MIN = "10"
+DEFAULT_TOTAL_HOURS = "1"
+DEFAULT_TOTAL_MIN = "10"
+DEFAULT_RUN_MIN = "5"
 
-HOURS_KEY = "-HOURS-"
-MIN_KEY = "-MIN-"
+TOTAL_HOURS_KEY = "-HOURS-"
+TOTAL_MIN_KEY = "-MIN-"
+RUN_MIN_KEY = "-RUN_MIN-"
 
-TIME_KEY_LIST = [HOURS_KEY, MIN_KEY]
+TIME_KEY_LIST = [TOTAL_HOURS_KEY, TOTAL_MIN_KEY, RUN_MIN_KEY]
+
 
 # Define function to check an InputText key for digits only
 def check_for_digits_in_key(key_str, window, event, values):
@@ -29,26 +33,33 @@ def check_for_digits_in_key(key_str, window, event, values):
             window[key_str].update(values[key_str][:-1])
 
 
-
 def get_time_layout():
     time_size = (3, 1)
     
     time_layout = [
-                    [sg.Text("Experiment Run Time:")],
-                    [sg.Text("Hour(s):"), sg.InputText(DEFAULT_HOURS, size=time_size, enable_events=True, key=HOURS_KEY)],
-                    [sg.Text("Min (s): "), sg.InputText(DEFAULT_MIN, size=time_size, enable_events=True, key=MIN_KEY)],
+                    [sg.Text("How long will I collect pictures?")],
+                    [sg.Text("Hour(s):"), sg.InputText(DEFAULT_TOTAL_HOURS, size=time_size, enable_events=True, key=TOTAL_HOURS_KEY)],
+                    [sg.Text("Min(s) : "), sg.InputText(DEFAULT_TOTAL_MIN, size=time_size, enable_events=True, key=TOTAL_MIN_KEY)],
+                    [sg.Text("How long will I wait between each run?")],
+                    [sg.Text("Min(s) : "), sg.InputText(DEFAULT_RUN_MIN, size=time_size, enable_events=True, key=RUN_MIN_KEY)]
                   ]
     return time_layout
 
 
 def get_hour_min(event, values, window):
-    hours = int(values[HOURS_KEY])
-    minutes = int(values[MIN_KEY])
-    print(f"Experiment will run for {hours} hours and {minutes} minutes")
+    # Assumes values found in the InputText are integers.
+    # Demonstrates that the time values are collected.
+
+    total_hours = int(values[TOTAL_HOURS_KEY])
+    total_minutes = int(values[TOTAL_MIN_KEY])
+    print(f"Experiment will run for {total_hours} hours and {total_minutes} minutes")
     
     # Convert to seconds for time.sleep()
-    seconds = hours*60*60 + minutes*60
-    print(f"or experiment will run for {seconds} seconds")
+    total_seconds = total_hours*60*60 + total_minutes*60
+    print(f"or experiment will run for {total_seconds} seconds")
+
+    run_minutes = int(values[RUN_MIN_KEY])
+    print(f"After collecting data from wells, will wait {run_minutes} minutes before collecting data again")
 
 
 def main():
