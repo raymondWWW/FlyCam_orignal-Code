@@ -63,6 +63,7 @@ import settings as C
 import get_current_location_m114 as GCL
 import printer_connection as printer
 import prepare_experiment as P
+import module_get_cam_settings as GCS
 
 # ==== USER CONSTANTS - GUI ====
 # TODO: Put these in a YAML GUI Settings File?
@@ -285,7 +286,7 @@ def run_relative(direction, values):
 
 # Thread version
 # Define function start_experiment(event, values)
-def run_experiment(event, values, thread_event, camera):
+def run_experiment(event, values, thread_event, camera, preview_win_id):
     """
     Description: Runs experiment to take a picture, video, or preview (do nothing)
     
@@ -293,6 +294,11 @@ def run_experiment(event, values, thread_event, camera):
     """
     # global camera
     print("run_experiment")
+    
+    if camera.preview:
+        camera.stop_preview()
+        
+    
     
     # Get CSV Filename
     csv_filename = values[OPEN_CSV_FILEBROWSE_KEY]
@@ -310,6 +316,11 @@ def run_experiment(event, values, thread_event, camera):
     if values[EXP_RADIO_PREVIEW_KEY] == False:
         folder_path = P.create_and_get_folder_path()
         print("Not in Preview Mode, creating folder:", folder_path)
+        
+    # Get Camera Settings Module
+    # Initialize unique CSV camera settings file
+    GCS.SAVE_CSV_FOLDER = folder_path
+    GCS.init_csv_file()
     
     # Create While loop to check if thread_event is not set (closing)
     count_run = 0
@@ -344,12 +355,21 @@ def run_experiment(event, values, thread_event, camera):
                 # print(file_full_path)
                 
                 # Change Image Capture Resolution
-                pic_width = PIC_WIDTH
-                pic_height = PIC_HEIGHT
-            
-                #camera.resolution = (pic_width, pic_height)
+                # pic_width = PIC_WIDTH
+                # pic_height = PIC_HEIGHT
                 
-                camera.capture(file_full_path)
+                #camera.stop_preview()
+                #camera.resolution = (pic_width, pic_height)
+                # time.sleep(.1)
+                #camera.capture(file_full_path)
+                # camera.start_preview()
+                #start_camera_preview(event, values, camera, preview_win_id)
+                
+                
+                get_well_picture(camera, file_full_path)
+                
+                data_row = GCS.gen_cam_data(file_full_path, camera)
+                GCS.append_to_csv_file(data_row)
                 
                 # Return to streaming resolution: 640 x 480 (or it will crash)
                 # Bug: Crashes anyway because of threading
@@ -402,7 +422,7 @@ def run_experiment_gui(main_values, camera):
     # Get paths from CSV file
     print("run_experiment")
     
-    
+    camera.stop_preview()
     
     
     # Get CSV Filename
@@ -424,7 +444,7 @@ def run_experiment_gui(main_values, camera):
     printer.run_gcode(gcode_string_list[0])
     
     # Wait to go to well
-    time.sleep(8)
+    time.sleep(2)
     print("Done waiting to go to WELL")
     
     
@@ -478,7 +498,7 @@ def run_experiment_gui(main_values, camera):
         
         printer.run_gcode(gcode_string_list[index])
         # Wait to go to well
-        time.sleep(7)
+        time.sleep(2)
         
         if main_values[EXP_RADIO_PREVIEW_KEY] == True:
             print("Preview Mode is On, only showing preview camera \n")
@@ -496,8 +516,9 @@ def run_experiment_gui(main_values, camera):
             file_full_path = P.get_file_full_path(folder_path, well_number)
             # print(file_full_path)
             
+            get_well_picture(camera, file_full_path)
             
-            camera.capture(file_full_path)
+            # camera.capture(file_full_path)
             # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
             time.sleep(2)
             
@@ -612,6 +633,29 @@ def get_picture(camera):
     # Return to streaming resolution: 640 x 480 (or it will crash)
     camera.resolution = (VID_WIDTH, VID_HEIGHT)
     pass
+
+
+def get_well_picture(camera, file_full_path):
+    # TODO: Change variables here to Global to match changes in Camera Tab
+    # Take a Picture, 12MP: 4056x3040
+    pic_width = PIC_WIDTH
+    pic_height = PIC_HEIGHT
+    # unique_id = get_unique_id()
+    # pic_save_name = f"well{well_number}_{unique_id}_{pic_width}x{pic_height}.jpg"
+    
+    camera.resolution = (pic_width, pic_height)
+    # camera.resolution = (2592, 1944)
+    
+    # pic_save_full_path = f"{PIC_SAVE_FOLDER}/{pic_save_name}"
+    
+    camera.capture(file_full_path)
+    
+    print(f"Saved Image: {file_full_path}")
+    
+    # Return to streaming resolution: 640 x 480 (or it will crash)
+    camera.resolution = (VID_WIDTH, VID_HEIGHT)
+    pass
+
 
 
 def get_x_pictures(x, delay_seconds, camera):
@@ -773,6 +817,9 @@ def get_current_location2():
         # print(f"Location Search Attempt: {i}")
         # Run M114 GCODE
         printer.run_gcode("M114")
+        # Make GUI wait for 3D printer to receive and process command.
+        # May need to make this adjustable in the future.
+        time.sleep(1)
         serial_string = printer.get_serial_data2()
         if GCL.does_location_exist_m114(serial_string) == True:
             
@@ -1194,8 +1241,8 @@ def set_exposure_mode(event, values, window, camera):
     
     # Exposure Mode
     # camera.framerate = 30
-    # camera.shutter_speed = 33164
-    camera.shutter_speed = camera.exposure_speed
+    camera.shutter_speed = 30901
+    # camera.shutter_speed = camera.exposure_speed
     camera.exposure_mode = 'off'
     g = camera.awb_gains
     camera.awb_mode = 'off'
@@ -1214,6 +1261,33 @@ def set_white_balance(camera, red_gain=1.5, blue_gain=1.8, isAutoWhiteBalanceOn=
     camera.awb_gains = (red_gain, blue_gain)
     pass
 # === End Camera Settings Functions ===
+
+
+def start_camera_preview(event, values, camera, preview_win_id):
+    print("Starting Preview With Settings")
+    if camera.preview:
+        camera.stop_preview()
+    prev_width = int(values[PREVIEW_WIDTH_KEY])
+    prev_height = int(values[PREVIEW_HEIGHT_KEY])
+    prev_loc_x = int(values[PREVIEW_LOC_X_KEY])
+    prev_loc_y = int(values[PREVIEW_LOC_Y_KEY])
+    alpha_val = int(values[ALPHA_KEY])
+    
+    # Update Global Variables so Pseudo Window has Control
+    PREVIEW_LOC_X = prev_loc_x
+    PREVIEW_LOC_Y = prev_loc_y
+    PREVIEW_WIDTH = prev_width
+    PREVIEW_HEIGHT = prev_height
+    PREVIEW_ALPHA = alpha_val
+    
+    # Move Pseudo Window to input location too
+    move_window_pid(preview_win_id, prev_loc_x, prev_loc_y - PREVIEW_WINDOW_OFFSET)
+    
+    camera.start_preview(alpha=alpha_val, fullscreen=False, window=(prev_loc_x, prev_loc_y, prev_width, prev_height))
+    
+    x_win, y_win = get_window_location_from_pid(preview_win_id)
+    print(f"x_win:{x_win}, y_win:{y_win}")
+
 
 # define main function
 def main():
@@ -1236,6 +1310,31 @@ def main():
     # camera.rotation = C.CAMERA_ROTATION_ANGLE
     # Lab stuff
     camera.rotation = 270
+    
+    # Set Camera Settings:
+    # Set Exposure mode
+    # camera.exposure_mode = 'fireworks'
+    
+    # Set AWB Mode
+    # camera.awb_mode = 'cloudy'
+    
+    # Let Camera Settings Settle:
+    pre_value = camera.digital_gain
+    cur_value = -1
+    # for i in range(20):
+    # Wait for digital gain values to settle, then break out of loop
+    while pre_value != cur_value:
+        pre_value = cur_value
+        # pre gets cur 
+        # cur get new
+        
+        cur_value = camera.digital_gain
+        #if pre_value != cur_value:
+        #    pre_value = cur_value
+        
+        print(f"digital_gain: {cur_value}")
+        time.sleep(0.5)
+    
     
     # rawCapture = PiRGBArray(camera, size=(VID_WIDTH, VID_HEIGHT))
     
@@ -1509,7 +1608,7 @@ def main():
             window[STOP_EXPERIMENT].update(disabled=False)
             
             # Create actual experiment_thread
-            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera,), daemon=True)
+            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera, preview_win_id), daemon=True)
             experiment_thread.start()
             
             # Create Unique Folder, Get that Unique Folder's Name
@@ -1634,6 +1733,9 @@ def main():
             print(f"You pressed: {SAVE_LOC_BUTTON}")
             save_current_location()
         elif event == START_PREVIEW:
+            
+            start_camera_preview(event, values, camera, preview_win_id)
+            """
             print("Starting Preview With Settings")
             if camera.preview:
                 camera.stop_preview()
@@ -1657,6 +1759,7 @@ def main():
             
             x_win, y_win = get_window_location_from_pid(preview_win_id)
             print(f"x_win:{x_win}, y_win:{y_win}")
+            """
             
         elif event == STOP_PREVIEW:
             print("Stopping Preview")
@@ -1683,6 +1786,7 @@ def main():
         # rawCapture.truncate(0)
 
     # Out of While Loop
+    camera.stop_preview()
     
     # Closing Window
     window.close()
