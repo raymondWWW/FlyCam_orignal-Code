@@ -61,20 +61,19 @@ def get_hour_min(event, values, window):
 
     run_minutes = int(values[RUN_MIN_KEY])
     run_seconds = run_minutes * 60
-    print(f"After collecting data from wells, will wait {run_minutes} (or {run_seconds} seconds) minutes before collecting data again")
+    print(f"After collecting data from wells, will wait {run_minutes} minutes (or {run_seconds} seconds) before collecting data again")
 
     # Dummy values for fasting code testing
-    total_seconds = 16
-    run_seconds = 5
-    demo_start_experiment_1(total_seconds, run_seconds)
+    # total_seconds = 61
+    # run_seconds = 10
+    # demo_start_experiment_1(total_seconds, run_seconds)
+    demo_start_experiment_2(total_seconds, run_seconds)
 
 
 def demo_start_experiment_1(total_seconds, run_seconds):
     print("demo_start_experiment_1")
     # Practice function to practice
     # While loop using time.sleep to pause the script
-
-    # TODO: Display time left until end of experiment and time left until next run.
 
     # demo location list init
     location_list = [1, 2, 3, 4]
@@ -92,10 +91,6 @@ def demo_start_experiment_1(total_seconds, run_seconds):
     # While elapsed time is less than total time
     while elapsed_seconds < total_seconds:
         #  Go to location (print it out)
-        # print(location_list[location_index])
-        # time.sleep(1)
-        # location_index += 1
-
         print(f"Run #{counter}")
         for loc in location_list:
             print(loc)
@@ -109,6 +104,9 @@ def demo_start_experiment_1(total_seconds, run_seconds):
 
         print(f"elapsed_seconds: {elapsed_seconds:.2f}")
 
+        # Display time left until end of experiment
+        print(f"Time left until end of experiment: {(total_seconds - elapsed_seconds):.1f} sec")
+
         # if location_index >= len(location_list):
         #     location_index = 0
             # break  # temp
@@ -119,24 +117,104 @@ def demo_start_experiment_1(total_seconds, run_seconds):
         #       May need threading, which is what my GUI does.
 
         # TODO: Figure out how to avoid putting this if statement here.
-        if elapsed_seconds < total_seconds:
+        # Check if sleeping will go over the time limit
+        #   If it doesn't, sleep until next run
+        #   If it does, time to break the loop
+        if elapsed_seconds + run_seconds < total_seconds:
             print(f"Will wait {run_seconds} seconds until collecting data again")
             time.sleep(run_seconds)
+        elif elapsed_seconds + run_seconds > total_seconds:
+            print(f"Doing another run will go over set time limit, stopping experiment.")
+            break
 
         counter += 1
 
     print("Done running experiment")
 
-
     #  iterate location index by one or reset to zero if hit end of list.
 
 
-    pass
-
-
-def demo_start_experiment_2():
+def demo_start_experiment_2(total_seconds, run_seconds):
     # While loop using time.monotonic to activate certain conditions the script
+
+    # TODO: Display time left until end of experiment and time left until next run.
+    print("demo_start_experiment_2")
+    # Practice function to practice
+    # While loop using time.sleep to pause the script
+
+    # demo location list init
+    location_list = [1, 2, 3, 4]
+
+    # Init start time variable
+    start = time.monotonic()
+    run_start = time.monotonic()
+
+    # Init location index to zero
+    location_index = 0
+
+    elapsed_seconds = -1
+    run_time_left = 0
+    run_elapsed = -1
+    counter = 0
+
+    # While elapsed time is less than total time
+    while elapsed_seconds < total_seconds:
+
+        # For testing, break after 3 runs
+        # if counter >= 3:
+        #     break
+
+        if run_time_left <= 0:
+            # Run experiment
+            if counter > 0:
+                print(f"Done Waiting {run_seconds} sec")
+
+            print(f"Run #{counter}")
+            for loc in location_list:
+                print(loc)
+                time.sleep(1)
+            counter += 1
+
+            # Reset run_time_left
+            run_time_left = run_seconds
+
+            # Reset run_start
+            run_start = time.monotonic()
+
+            print(f"Will wait {run_seconds} sec before doing next run.")
+
+            # Display time left until end of experiment
+            print(f"Time left until end of experiment: {(total_seconds - elapsed_seconds):.1f} sec")
+
+        #  Get current time
+        current_time = time.monotonic()
+
+        #  Calculate elapsed time (current - start)
+        elapsed_seconds = current_time - start
+        run_elapsed = current_time - run_start
+        run_time_left = run_seconds - run_elapsed
+
+        # print(f"run_elapsed: {run_elapsed}")
+        # print(f"run_time_left: {run_time_left}")
+
+        # print(f"elapsed_seconds: {elapsed_seconds:.2f}")
+
+    print("Done running experiment")
+
+
+def demo_time_left():
+    # Temp function for displaying time left every x seconds
+
+    # Init start time
+
+    # While loop that lasts for 30 seconds
+    #  every 5 seconds, display time left
+    #  Get current time
+    #  Calculate elapsed time
+    #  Calc time left
+    #  Convert time left to int, if mod 5 is 0, display time
     pass
+
 
 
 def main():
