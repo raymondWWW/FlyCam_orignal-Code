@@ -206,15 +206,85 @@ def demo_time_left():
     # Temp function for displaying time left every x seconds
 
     # Init start time
+    start_time = time.monotonic()
+
+    elapsed_time = 0
+
+    total_seconds = 61  # sec
+    # total_seconds = 3661  # sec
+
+    when_to_display_time_left = 5   # sec
 
     # While loop that lasts for 30 seconds
-    #  every 5 seconds, display time left
-    #  Get current time
-    #  Calculate elapsed time
-    #  Calc time left
-    #  Convert time left to int, if mod 5 is 0, display time
+    while elapsed_time < total_seconds:
+        #  Get current time
+        current_time = time.monotonic()
+
+        #  Calculate elapsed time
+        elapsed_time = current_time - start_time
+
+        #  Calc time left
+        time_left = total_seconds - elapsed_time
+        # print(f"elapsed_time: {elapsed_time}")
+
+        #  Convert time left to int, if mod 5 is 0, display time
+        time_left_sec_int = int(time_left)
+        time_left_min = time_left/60
+        time_left_min_int = int(time_left_min)
+        time_left_hours = time_left/(60*60)
+
+        if (time_left_sec_int % when_to_display_time_left) == 0:
+            #  every 5 seconds, display time left
+
+            # TODO: Display hours and minutes left if minutes > 60
+            if time_left_sec_int >= 60*60:
+                # print(f"Hours left: {time_left_hours}")
+                hours_left = int(time_left_hours)
+                minutes_left = (time_left_hours % hours_left) * 60
+                minutes_left_int = int(minutes_left)
+                if minutes_left_int != 0:
+                    seconds_left = int((minutes_left % minutes_left_int) * 60)
+                    print(f"time left: {hours_left} hour(s), {minutes_left_int} minute(s), and {seconds_left} second(s).")
+                else:
+                    seconds_left = int(minutes_left * 60)
+                    print(f"time left: {hours_left} hour(s), {seconds_left} second(s).")
+                    # print(f"minutes_left: {minutes_left}")
+                # print(f"After decimal: {time_left_min % time_left_min_int}")
+                # print(f"time_left: {time_left_min} minutes")
+                # print(f"time_left: {minutes_left} minutes and {seconds_left} seconds")
+                # print(f"time left: {hours_left} hour(s) and {minutes_left_int} minute(s).")
+
+            # TODO: Display minutes left if seconds > 60.
+            elif time_left_sec_int > 60:
+                minutes_left = int(time_left_min)
+                seconds_left = int((time_left_min % time_left_min_int) * 60)
+                # print(f"After decimal: {time_left_min % time_left_min_int}")
+                # print(f"time_left: {time_left_min} minutes")
+                print(f"time_left: {minutes_left} minutes and {seconds_left} seconds")
+
+            # Display seconds left if 60 seconds are left
+            elif time_left_sec_int <= 60:
+                print(f"time_left: {time_left_sec_int} second(s)")
+
+            # print(f"time_left: {time_left_sec_int} seconds")
+            # Figure out way to remove sleep
+            time.sleep(1)
+
+            # Since sleeping for 1 second, update current and elapsed time.
+            current_time = time.monotonic()
+            elapsed_time = current_time - start_time
+            # print(f"elapsed_time: {elapsed_time:.2f} sec")
+    print("Out of while loop")
+
+
+
+
+
     pass
 
+
+def main2():
+    demo_time_left()
 
 
 def main():
@@ -251,4 +321,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    main2()
