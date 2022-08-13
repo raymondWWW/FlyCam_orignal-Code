@@ -38,6 +38,8 @@ from os.path import isfile, join
 
 IMAGE_FOLDER = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\7-22-2022\Code_Pictures_2022-07-21_194944'
 
+SAVE_FOLDER = r'D:\Projects\3dprinter_sampling\testing\Image_Processing\cropped'
+
 WELL_KEY = "well_number"
 DATE_KEY = "datetime"
 
@@ -290,8 +292,8 @@ def main():
 
         print(f"Image {counter} / {len(file_list)}")
 
-        if counter == 40:
-            break
+        # if counter == 40:
+        #     break
 
         # Get well number and date/time from filename
         filename_data_dict = get_filename_data(file)
@@ -345,17 +347,36 @@ def main():
         resized_image = cv2.putText(resized_image, image_text, org, font,
                             fontScale, color, thickness, line_type)
 
-        frame = cv2.resize(resized_image, (frame_width, frame_height))
 
-        # Swap BGR to RGB
-        frame_copy = frame.copy()
+        # Save Image
 
-        frame_copy[:, :, 0] = frame[:, :, 2]
-        frame_copy[:, :, 2] = frame[:, :, 0]
+        # Create filename
+        save_file_name = f"well_{filename_data_dict[WELL_KEY]}_{counter}.jpg"
+
+        # Save to specific folder
+        save_full_path = join(SAVE_FOLDER, save_file_name)
+
+        # Save image
+        cv2.imwrite(save_file_name, resized_image)
+
+        # --- START VIDEO SAVE ---
+        # Working Image to Video Save, but resize is restricting. Need to figure out how to add black borders to maintain aspect ratio
+        # TODO: Save 3 different videos for 3 different wells
+        # frame = cv2.resize(resized_image, (frame_width, frame_height))
+        #
+        # # Swap BGR to RGB
+        # frame_copy = frame.copy()
+        #
+        # frame_copy[:, :, 0] = frame[:, :, 2]
+        # frame_copy[:, :, 2] = frame[:, :, 0]
+        #
+        # out_video[counter] = frame_copy
+
+        # --- END VIDEO SAVE ---
 
         # cv2.imshow("frame", frame)
         # output.write(frame)
-        out_video[counter] = frame_copy
+
 
         # Display image
         # cv2.imshow("resized_image", resized_image)
