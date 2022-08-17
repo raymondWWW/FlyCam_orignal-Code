@@ -18,6 +18,8 @@ Display Image
 TODO:
 -Circle overlay opacity? Color change?
 -Research ellipse?
+-Check if default number, does it change later?
+-Color Wheel,
 """
 import cv2
 import PySimpleGUI as sg
@@ -28,11 +30,8 @@ from os.path import join
 LOAD_IMAGE = "Update/Load Image"
 
 # Circle Mask
-# CIRCLE_XC = 1350
-# CIRCLE_YC = 960
-# CIRCLE_CENTER = (CIRCLE_XC, CIRCLE_YC)
 CIRCLE_RADIUS = 100
-CIRCLE_COLOR = (0, 0, 255)
+CIRCLE_COLOR = (0, 0, 255) # BGR
 CIRCLE_THICKNESS = 1
 
 RAD_KEY = "-RADIUS-"
@@ -40,6 +39,8 @@ RAD_MINUS_TEN = "-RAD MINUS_TEN-"
 RAD_MINUS_ONE = "-RAD MINUS_ONE-"
 RAD_PLUS_ONE = "-RAD PLUS ONE-"
 RAD_PLUS_TEN = "-RAD PLUS TEN-"
+
+THICKNESS = 1
 
 
 def update_circle(event, values, window):
@@ -77,20 +78,22 @@ def draw_on_image():
     print(f"Center: {center_x, center_y}")
 
     # On Copy, Draw line, center y, from min x to max x
+    # horizontal line
     start_point = (0, center_y)
     end_point = (width, center_y)
     color = (0, 0, 255) # BGR
     thickness = 1
-    image_edit = cv2.line(image_edit, start_point, end_point, color, thickness)
+    image_edit = cv2.line(image_edit, start_point, end_point, color, THICKNESS)
 
     # On Copy, Draw line, center x, from min y to max y
+    # vertical line
     start_point = (center_x, 0)
     end_point = (center_x, height)
-    image_edit = cv2.line(image_edit, start_point, end_point, color, thickness)
+    image_edit = cv2.line(image_edit, start_point, end_point, color, THICKNESS)
 
     # On copy, Draw circle at center x/y with radius
     center_coordinates = (center_x, center_y)
-    image_edit = cv2.circle(image_edit, center_coordinates, CIRCLE_RADIUS, color, CIRCLE_THICKNESS)
+    image_edit = cv2.circle(image_edit, center_coordinates, CIRCLE_RADIUS, color, THICKNESS)
 
     # Display Image
     cv2.imshow("image_edit", image_edit)
@@ -114,7 +117,7 @@ def get_dummy_image():
 
 def main():
     print("Main")
-
+    global THICKNESS
 
 
     # cv2.imshow("test", image_resize)
@@ -132,7 +135,8 @@ def main():
               [sg.Text("Circle Radius:"),
                sg.Button("-10", key=RAD_MINUS_TEN), sg.Button("-1", key=RAD_MINUS_ONE),
                sg.Input(CIRCLE_RADIUS, size=(4, 1), key=RAD_KEY),
-               sg.Button("+1", key=RAD_PLUS_ONE), sg.Button("+10", key=RAD_PLUS_TEN)]]
+               sg.Button("+1", key=RAD_PLUS_ONE), sg.Button("+10", key=RAD_PLUS_TEN)],
+              [sg.Text("Thickness:"), sg.Input(THICKNESS, size=(4, 1), key="-=THICK KEY=-"), sg.Button("Update Thickness")]]
 
     # Setup window
     window = sg.Window("Cross Hair Test", layout=layout)
@@ -149,8 +153,21 @@ def main():
             break
         elif event == LOAD_IMAGE:
             # print(f"Pressed: {LOAD_IMAGE}")
+            # Updating Thickness
+            thick_number = int(values["-=THICK KEY=-"])
+            THICKNESS = thick_number
+
             draw_on_image()
             update_circle(event, values, window)
+        elif event == "Update Thickness":
+            # Extract string value, then convert to int
+
+            thick_number = int(values["-=THICK KEY=-"])
+            THICKNESS = thick_number
+            print(f"thick_number: {thick_number}")
+            print(f"THICKNESS: {THICKNESS}")
+
+
 
 
 
