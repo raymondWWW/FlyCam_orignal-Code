@@ -72,6 +72,9 @@ for file in os.listdir(folder):
             print('image found')
 
             s_img = cv2.resize(img, (320, 240))
+
+            # TODO: Put in ROI selector for image here
+
             rgbblurIM=cv2.GaussianBlur(s_img, (5, 5), 0)
 
             img_copy=s_img.copy()
@@ -90,6 +93,7 @@ for file in os.listdir(folder):
 
 
 
+            # TODO: Comment out any lines involving circles, see if plots still work
 
           ########## find circle in image ##########
             #with sharpie: param 1: 100, param 2: 15
@@ -106,6 +110,7 @@ for file in os.listdir(folder):
                 cv2.circle(img_copy, (i[0], i[1]), i[2], (0, 255, 2), 2)
                 square=img_copy[i[1]-30:i[1]+30, i[0]-30:i[0]+30, 2]=255
 
+                # TODO: Find out what happens to this img_copy
                 cv2.imshow('draw circle', img_copy)
 
                 
