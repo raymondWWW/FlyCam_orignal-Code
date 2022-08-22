@@ -49,7 +49,13 @@ rrxnlist=[]
 #folder=r'C:/Users/Familie Moeller/Desktop/Files/College/SFSU/Independent Study/Dr.E Lab/Colorimetric Assay Data/02222022 Data/02222022 Data/MHT_022222_PH_Run01'
 #folder=r'C:/Users/Familie Moeller/Desktop/Files/College/SFSU/Independent Study/Dr.E Lab/MHT Pictures/MHT Pictures/6-9-2021 (Wed)/Code_Pictures_2021-06-09_034320'
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08082022_stdassay_run2'
-folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01'
+# folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01'
+# folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01_temp'
+folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate'
+
+isFirstTime = True
+x1, y1, x2, y2 = 0, 0, 0, 0
+
 
 for file in os.listdir(folder):
     if file.startswith(well):
@@ -76,6 +82,9 @@ for file in os.listdir(folder):
             # TODO: Put in ROI selector for image here
 
             rgbblurIM=cv2.GaussianBlur(s_img, (5, 5), 0)
+            # cv2.imshow('rgbblurIM crop', rgbblurIM[184:184+27, 74:74+21]) #best results
+            # print('rgbblurIM Datatype:', rgbblurIM.dtype)
+
 
             img_copy=s_img.copy()
             hsvImg= cv2.cvtColor(s_img,cv2.COLOR_BGR2HSV)
@@ -86,15 +95,123 @@ for file in os.listdir(folder):
             wide = cv2.Canny(blurIM, 10, 200)
             mid = cv2.Canny(blurIM, 30, 150)
             tight = cv2.Canny(blurIM, 240, 250)
-            cv2.imshow('wide', wide) #best results
+            # cv2.imshow('blurHSVIM', blurHSVIM) #best results
+            # cv2.imshow('wide', wide) #best results
             #cv2.imshow('mid', mid) #best results
             #cv2.imshow('tight', tight) #best results
+
+            # print('blurHSVIM Datatype:', blurHSVIM.dtype)
 
 
 
 
             # TODO: Comment out any lines involving circles, see if plots still work
 
+            if isFirstTime:
+                # Allow user to select ROI
+                # Select ROI
+                # r = cv2.selectROI("select the area", s_img)
+                # print(f"r: {r}")
+                # # Get coordinates of ROI
+                # x1, y1, x2, y2 = r
+
+                # PH_08122022_PNPA_pHdep_Assay_run01
+                # x1 = 187
+                # y1 = 74
+                # x2 = 19
+                # y2 = 22
+
+                # PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate
+                # r: (186, 139, 43, 36)
+                x1 = 186
+                y1 = 139
+                x2 = 43
+                y2 = 36
+
+                isFirstTime = False
+
+
+            # r = cv2.selectROI("select the area", s_img)
+            # print(f"r: {r}")
+
+            # Get coordinates of ROI
+            # x0, y0, w, h = r
+            # x0 = int(x0)
+            # y0 = int(y0)
+            # w = int(w)
+            # h = int(h)
+
+            # PH_08122022_PNPA_pHdep_Assay_run01
+            # x1 = 187
+            # y1 = 74
+            # x2 = 19
+            # y2 = 22
+
+            # Crop image
+            # cropped_image = s_img[int(r[1]):int(r[1]+r[3]),
+            #                       int(r[0]):int(r[0]+r[2])]
+            cropped_image = s_img[y1:y1+y2, x1:x1+x2, :]
+
+            # Display cropped image
+            # cv2.imshow("Cropped image", cropped_image)
+            # cv2.waitKey(0)
+
+            #  TODO: v2: if no ROI, ask user to select again or end program
+            # Using s_image, get blue, green and red channels as separate images
+            blueIM=s_img[:,:,0]                   # b,g,r
+            greenIM=s_img[:,:,1]
+            redIM=s_img[:,:,2]
+
+            # cv2.imshow('blue',blueIM)
+            # cv2.waitKey(10000)
+
+            # Crop blurHSVIM to ROI
+            # print(f"blurHSVIM.shape: {blurHSVIM.shape}")
+            blurHSVIM_cropped = blurHSVIM[y1:y1+y2, x1:x1+x2, :]
+            #   Extract h channel, store in hi
+            hi = blurHSVIM_cropped[:, :, 0]
+
+            #   Get average of hi, store in h numpy array
+            h=np.append(h, int(np.average(hi)))
+            # h.append(int(np.average(hi)))
+
+            #   Extract s channel, store in si
+            si = blurHSVIM_cropped[:, :, 1]
+            #   Get average of si, store in s numpy array
+            s=np.append(s,int(np.average(si)))
+
+            #   Extract v channel, store in vi
+            vi = blurHSVIM_cropped[:, :, 2]
+            #   Get average of vi, store in v numpy array
+            v=np.append(v, int(np.average(vi)))
+
+            #   Do the same with RGB
+            # Crop rgbblurIM
+            # print(f"rgbblurIM.shape: {rgbblurIM.shape}")
+            rgbblurIM_cropped = rgbblurIM[y1:y1+y2, x1:x1+x2, :]
+            #
+
+            # x0 = 187
+            # y0 = 74
+            # w = 19
+            # h = 22
+
+            ri = rgbblurIM_cropped[:, :, 2]
+            r=np.append(r, int(np.average(ri)))
+            #
+            gi = rgbblurIM_cropped[:, :, 1]
+            g=np.append(g,int(np.average(gi)))
+            #
+            bi = rgbblurIM_cropped[:, :, 0]
+            b=np.append(b, int(np.average(bi)))
+
+
+
+
+
+            # print(v)
+
+            """
           ########## find circle in image ##########
             #with sharpie: param 1: 100, param 2: 15
             #without sharpie: param 1: 65, param 2: 10
@@ -145,7 +262,7 @@ for file in os.listdir(folder):
                 bi = rgbblurIM[i[1]-30:i[1]+30, i[0]-30:i[0]+30, 0] #2W by 2W HSV img
                 b=np.append(b, int(np.average(bi)))
                 #cv2.imshow('resized Image', s_img)
-
+            """
 for i in range(len(rrxnlist0)):
     i=int(i)
     rrxnli=(int(rrxnlist0[i]-int(rrxnlist0[0])))
@@ -275,6 +392,9 @@ plt.rc('font', weight='bold')
 fig, ax = plt.subplots()
 ##ax.xaxis.set_minor_locator(minorLocator)
 ##ax.yaxis.set_minor_locator(minorLocator)
+
+# print(f"rrxnlist.shape: {rrxnlist.shape}")
+# print(f"h.shape: {h.shape}")
 
 ax.plot(rrxnlist, h, label='H',  color='purple')
 ax.plot(rrxnlist, s, label='S', color='black')
