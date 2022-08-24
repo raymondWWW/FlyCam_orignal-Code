@@ -32,7 +32,27 @@ Ideas:
 -GUI that is an excel sheet, right side has "go to location button"?
 -GUI that has clickable image to go to well location, and editable x/y/z?
 -Save to CSV File
+
+TODO:
+- Test row vs column generation, are the locations different?
+- [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
+
+
+Sources:
+
+https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
+*Save list of dict to dataframe
 """
+
+import pandas as pd
+
+# CONSTANTS
+
+
+# Dictionary keys and headers
+X = "X"
+Y = "Y"
+Z = "Z"
 
 
 def get_delta_dict(start_loc, end_loc):
@@ -211,14 +231,14 @@ def get_all_well_locations(num_row, num_col, first_row, first_col):
     :param first_col:
     :return:
     """
-    headers = ["row", "col", "x", "y", "z"]
-    ROW = headers[0]
-    COL = headers[1]
-    X = headers[2]
-    Y = headers[3]
-    Z = headers[4]
+    # headers = ["row", "col", "x", "y", "z"]
+    # ROW = headers[0]
+    # COL = headers[1]
+    # X = headers[2]
+    # Y = headers[3]
+    # Z = headers[4]
 
-    data_dict = {ROW: [], COL: [], X: [],  Y: [], Z: []}
+    # data_dict = {ROW: [], COL: [], X: [],  Y: [], Z: []}
 
     # Use for loop to go through each row
     #    # Get row start and end from first_row
@@ -266,11 +286,27 @@ def get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bott
     # See if row and columns were generated correctly
     # For a given row, only x should advance as you move right. The rest should stay the same
     # For a given column, only y should advance as you move down. The rest should stay the same.
+    data_list = []
     for row in range(num_row):
         print("===========")
         for col in range(num_col):
             print(f"row: {row}, col: {col}, loc: {all_well_locations[row][col]} ")
             print(f"col: {col}")
+            loc =  all_well_locations[row][col]
+            x_loc = loc[X]
+            print(x_loc)
+            row_dict = {"row": row, "col": col, X: loc[X], Y: loc[Y], Z: loc[Z]}
+            print(row_dict)
+            data_list.append(row_dict)
+
+    print(f"data_list: {data_list}")
+
+    # Create dataframe
+    df = pd.DataFrame(data_list)
+    # print(df.head(5))
+
+    # TODO: Save to unique file name or something better than this.
+    df.to_csv("location_file.csv")
 
 
     pass
@@ -302,10 +338,16 @@ def main():
     # print(f"well_loc_list: {well_loc_list}")
 
     # Dummy Data:
-    top_left = {"X": 1.00, "Y": 2.00, "Z": 3.00}
-    top_right = {"X": 30.00, "Y": 2.00, "Z": 3.00}
-    bottom_left = {"X": 1.00, "Y": 30.00, "Z": 3.00}
-    bottom_right = {"X": 30.00, "Y": 30.00, "Z": 3.00}
+    # top_left = {"X": 1.00, "Y": 2.00, "Z": 3.00}
+    # top_right = {"X": 30.00, "Y": 2.00, "Z": 3.00}
+    # bottom_left = {"X": 1.00, "Y": 30.00, "Z": 3.00}
+    # bottom_right = {"X": 30.00, "Y": 30.00, "Z": 3.00}
+
+    # More like the Build Plate
+    top_left = {"X": 1.00, "Y": 30.00, "Z": 3.00}
+    top_right = {"X": 30.00, "Y": 30.00, "Z": 3.00}
+    bottom_left = {"X": 1.00, "Y": 2.00, "Z": 3.00}
+    bottom_right = {"X": 30.00, "Y": 2.00, "Z": 3.00}
 
     get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bottom_left, bottom_right)
 
