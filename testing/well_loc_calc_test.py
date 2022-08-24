@@ -75,6 +75,7 @@ def get_row_locations(row_start, row_end, num_col):
     :return: A list, list of well locations of a well
     """
 
+    # Number of jumps it takes to go from first column to the last column (horizontally)
     num_col_jump = num_col - 1
 
     # Get Step Distance Values
@@ -130,22 +131,186 @@ def get_row_locations(row_start, row_end, num_col):
     return well_loc_list
 
 
+def get_col_locations(col_start, col_end, num_row):
+    """
+    Given the starting and ending row location, and number of columns,
+    calculate each well's location in a row.
+
+    TODO: Figure out if should return a dictionary using row/col as keys?
+
+    :param col_start: A dictionary, format: {"X": 0.00, "Y": 0.00, "Z": 0.00}
+    :param col_end: A dictionary, format: {"X": 0.00, "Y": 0.00, "Z": 0.00}
+    :param num_row: An int, the number of rows in well plate
+    :return: A list, list of well locations of a well
+    """
+
+    # Number of jumps it takes to go from first row to the last row (vertically)
+    num_row_jump = num_row - 1
+
+    # Get Step Distance Values
+    # Maximum number of jumps to go from well 1 to last well.
+    # Example: If there are 5 wells, you start at well 1.
+    #          How many jumps does it take to go from well 1 to well 5?
+    #          Answer 4, or number of columns - 1.
+    # Used to calculate distance to jump to next well.
+    max_row_jump = num_row - 1
+
+    # Get Delta Dictionary,
+    # used for calculating stepsize (or getting distance to jump to next well).
+    delta_dict = get_delta_dict(col_start, col_end)
+
+    # Initialize empty well_loc_list, to be appended later
+    well_loc_list = []
+
+    # print(f"row_start: {row_start}")
+    # Calculate row well locations using number of columns
+    for row in range(num_row):
+
+        # Init empty dictionary well_loc
+        well_loc = {}
+        # Loop Version, go through each key (X, Y, or Z), calculate location
+        for key in col_start.keys():
+            # print(key)
+            # Get Starting Location, as X, Y, or Z (individually)
+            start = col_start[key]
+
+            #  Get stepsize (in mm) amount to jump to next well
+            step = delta_dict[key] / max_row_jump
+
+            # Calculate actual location, round to two decimal places
+            loc = round(start + (step * row), 2)
+
+            # Add that location (float value) to that specific key (X, Y, or Z)
+            well_loc[key] = loc
+
+        # Print out location, make sure it increments correctly.
+        # Prints out column number (index starts at 1 since physical well plates do that)
+        # print(f"col: {col+1}, {well_loc}")
+
+        # Append location to well_loc_list
+        well_loc_list.append(well_loc)
+
+    # Print out row_end location for comparison and debugging.
+    # Last calculated row location (actual) should match row_end (expected)
+    # print(f"row_end: {row_end}")
+
+    # Output those locations
+    # print(f"well_loc_list: {well_loc_list}")
+
+    return well_loc_list
+
+
+def get_all_well_locations(num_row, num_col, first_row, first_col):
+    """
+    Calculates all well locations. Creates dictionary compatible lists for dataframe creation.
+    Lists created: row, col, x, y, z
+
+    :param num_row:
+    :param num_col:
+    :param first_row:
+    :param first_col:
+    :return:
+    """
+    headers = ["row", "col", "x", "y", "z"]
+    ROW = headers[0]
+    COL = headers[1]
+    X = headers[2]
+    Y = headers[3]
+    Z = headers[4]
+
+    data_dict = {ROW: [], COL: [], X: [],  Y: [], Z: []}
+
+    # Use for loop to go through each row
+    #    # Get row start and end from first_row
+    #    For loop to go through each columm
+    #      Append row and col index to data_dict
+    #
+
+
+    pass
+
+
+def get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bottom_left, bottom_right):
+    # Get all well locations given the 4 corners, number of rows, and number of columns
+    # Creates a lists of lists in a matrix-like format
+    # Example output for 2x3:
+    #   [[{x: 1, y: 1, z: 1}, {x: 10, y: 1, z: 1}, {x: 20, y: 1, z: 1}],
+    #    [{x: 1, y: 10, z: 1}, {x: 10, y: 10, z: 1}, {x: 20, y: 10, z: 1}]]
+
+    print(bottom_right)
+    print(f"Number of Rows: {num_row}")
+    print(f"Number of Col: {num_col}")
+    print(f"Expecting {num_row * num_col} wells")
+
+    all_well_locations = []
+
+    # Generate each row until the last row, appending to all_well_locations
+
+    first_column = get_col_locations(top_left, bottom_left, num_row)
+    print(f"first_column: {first_column}")
+    last_column = get_col_locations(top_right, bottom_right, num_row)
+    print(f"last_column: {last_column}")
+
+    for row in range(num_row):
+        print(row)
+        row_start = first_column[row]
+        row_end = last_column[row]
+        print(f"row_start: {row_start}")
+        print(f"row_end: {row_end}")
+
+        row_locations = get_row_locations(row_start, row_end, num_col)
+        print(f"row: {row}, row_locations: {row_locations}")
+        all_well_locations.append(row_locations)
+    print(f"all_well_locations: {all_well_locations}")
+
+    # See if row and columns were generated correctly
+    # For a given row, only x should advance as you move right. The rest should stay the same
+    # For a given column, only y should advance as you move down. The rest should stay the same.
+    for row in range(num_row):
+        print("===========")
+        for col in range(num_col):
+            print(f"row: {row}, col: {col}, loc: {all_well_locations[row][col]} ")
+            print(f"col: {col}")
+
+
+    pass
+
+
 def main():
     # Location format: location_dictionary = {"X": 0.00, "Y": 0.00, "Z": 0.00}
 
     # Placeholder data, row 1 start/end, number of rows and columns
-    num_row = 3
+    num_row = 6
     num_col = 5
 
     X = "X"; Y = "Y"; Z = "Z"
     key_list = [X, Y, Z]
 
     # Row 1
-    row_start = {"X": 1.00, "Y": 2.00, "Z": 3.00}
-    row_end = {"X": 51.00, "Y": 3.00, "Z": 1.00}
+    # row_start = {"X": 1.00, "Y": 2.00, "Z": 3.00}
+    # row_end = {"X": 51.00, "Y": 3.00, "Z": 1.00}
+    #
+    # well_loc_list = get_row_locations(row_start, row_end, num_col)
+    # print(f"well_loc_list: {well_loc_list}")
 
-    well_loc_list = get_row_locations(row_start, row_end, num_col)
-    print(f"well_loc_list: {well_loc_list}")
+
+    # Col 1
+    # col_start = {"X": 1.00, "Y": 2.00, "Z": 3.00}
+    # col_end = {"X": 1.00, "Y": 10.00, "Z": 3.00}
+    #
+    # well_loc_list = get_col_locations(col_start, col_end, num_row)
+    # print(f"well_loc_list: {well_loc_list}")
+
+    # Dummy Data:
+    top_left = {"X": 1.00, "Y": 2.00, "Z": 3.00}
+    top_right = {"X": 30.00, "Y": 2.00, "Z": 3.00}
+    bottom_left = {"X": 1.00, "Y": 30.00, "Z": 3.00}
+    bottom_right = {"X": 30.00, "Y": 30.00, "Z": 3.00}
+
+    get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bottom_left, bottom_right)
+
+
+
 
     pass
 
