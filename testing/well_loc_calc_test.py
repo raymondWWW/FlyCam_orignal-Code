@@ -37,8 +37,7 @@ TODO:
 - Create separate function to convert well location matrix to list of dict and save to CSv
 - Test row vs column generation, are the locations different?
 - [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
-- How to create snake pattern from well locations?
-
+- Clean code up.
 
 Sources:
 
