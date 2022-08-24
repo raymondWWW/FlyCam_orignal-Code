@@ -19,7 +19,7 @@ TODO:
 -Circle overlay opacity? Color change?
 -Research ellipse?
 -Check if default number, does it change later?
--Color Wheel,
+-Color Wheel, get it working. (Use a text or input box to capture the value)
 """
 import cv2
 import PySimpleGUI as sg
@@ -155,8 +155,7 @@ def main():
                sg.Button("+1", key=RAD_PLUS_ONE), sg.Button("+10", key=RAD_PLUS_TEN)],
               [sg.Text("Circle Thickness:"), sg.Input(CIRCLE_THICKNESS, size=(4, 1), key=CIRCLE_THICKNESS_KEY)],
               [sg.Text("Line Thickness:"), sg.Input(LINE_THICKNESS, size=(4, 1), key=LINE_THICKNESS_KEY)],
-              [sg.ColorChooserButton("Pick a Color", key="-= COLOR CHOOSER KEY =-")],
-              [sg.Button("Show Color", key="Show Color")]]
+              [sg.ColorChooserButton("Pick a Color", key="-= COLOR CHOOSER KEY =-")]]
 
     # Setup window
     window = sg.Window("Cross Hair Test", layout=layout)
@@ -183,10 +182,6 @@ def main():
             update_circle(event, values, window)
 
             # draw_on_image()
-        elif event == "Show Color":
-            print("Color Chosen?")
-            # print(values["-= COLOR CHOOSER KEY =-"])
-
 
     print("Closing GUI...")
     pass
