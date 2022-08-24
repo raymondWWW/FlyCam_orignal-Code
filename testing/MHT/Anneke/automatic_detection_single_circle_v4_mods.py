@@ -11,6 +11,8 @@ import cv2
 import matplotlib.pyplot as plt # for plotting histogram
 import os
 import string
+import pandas as pd
+
 from datetime import datetime
 from itertools import product
 from numpy import pi, sin, linspace, exp, polyfit
@@ -79,7 +81,6 @@ for file in os.listdir(folder):
 
             s_img = cv2.resize(img, (320, 240))
 
-            # TODO: Put in ROI selector for image here
 
             rgbblurIM=cv2.GaussianBlur(s_img, (5, 5), 0)
             # cv2.imshow('rgbblurIM crop', rgbblurIM[184:184+27, 74:74+21]) #best results
@@ -103,10 +104,6 @@ for file in os.listdir(folder):
             # print('blurHSVIM Datatype:', blurHSVIM.dtype)
 
 
-
-
-            # TODO: Comment out any lines involving circles, see if plots still work
-
             if isFirstTime:
                 # Allow user to select ROI
                 # Select ROI
@@ -122,11 +119,47 @@ for file in os.listdir(folder):
                 # y2 = 22
 
                 # PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate
+                # Right Image
                 # r: (186, 139, 43, 36)
-                x1 = 186
+                # x1 = 185
+                # y1 = 137
+                # x2 = 43
+                # y2 = 36
+
+                # Left Image
+                # r: (106, 139, 44, 32)
+                x1 = 106
                 y1 = 139
-                x2 = 43
-                y2 = 36
+                x2 = 44
+                y2 = 32
+
+                # Draw selection rectangle on image and save it.
+                # Start coordinate, here (100, 50)
+                # represents the top left corner of rectangle
+                start_point = (x1, y1)
+
+                # Ending coordinate, here (125, 80)
+                # represents the bottom right corner of rectangle
+                end_point = (x1+x2, y1+y2)
+
+                # Black color in BGR
+                color = (0, 0, 255)
+
+                # Line thickness of -1 px
+                # Thickness of -1 will fill the entire shape
+                thickness = 2
+
+                # Using cv2.rectangle() method
+                # Draw a rectangle of black color of thickness -1 px
+                s_img_rect = cv2.rectangle(img_copy, start_point, end_point, color, thickness)
+                # cv2.imshow("s_img_rect", s_img_rect)
+                # cv2.waitKey(10000)
+
+                save_filename = "sample_image.png"
+
+                cv2.imwrite(save_filename, s_img_rect)
+
+                # Create and save image with selection shown.
 
                 isFirstTime = False
 
@@ -156,7 +189,6 @@ for file in os.listdir(folder):
             # cv2.imshow("Cropped image", cropped_image)
             # cv2.waitKey(0)
 
-            #  TODO: v2: if no ROI, ask user to select again or end program
             # Using s_image, get blue, green and red channels as separate images
             blueIM=s_img[:,:,0]                   # b,g,r
             greenIM=s_img[:,:,1]
@@ -429,42 +461,79 @@ plt.tight_layout()
 plt.savefig(split_string[1] + well)
 plt.show()
 
-##y=s
-##x=rrxnlist
-##
-##num_points = len(x)
-##
-##min_fit_length = 100
-##
-##chi = 0
-##
-##chi_min = 10000
-##
-##i_best = 0
-##j_best = 0
-##
-##for i in range(len(x) - min_fit_length):
-##    for j in range(i+min_fit_length, len(x)):
-##
-##        coefs = polyfit(x[i:j],y[i:j],1)
-##        y_linear = x * coefs[0] + coefs[1]
-##        chi = 0
-##        for k in range(i,j):
-##            chi += ( y_linear[k] - y[k])**2
-##
-##        if chi < chi_min:
-##            i_best = i
-##            j_best = j
-##            chi_min = chi
-##            print(chi_min)
-##
-##coefs = polyfit(x[i_best:j_best],y[i_best:j_best],1)
-##y_linear = x[i_best:j_best] * coefs[0] + coefs[1]
-##
-##
-##fig = figure()
-##ax = fig.add_subplot(111)
-##ax.plot(x,y,'ro')
-##ax.plot(x[i_best:j_best],y_linear,'b-')
-##plt.show()
+# TODO:
+# Save to CSV
+# h=[]
+# s=[]
+# v=[]
+#
+# r=[]
+# g=[]
+# b=[]
 
+# Put in time stamp
+
+# Create RGB data dict
+rgb_dict = {"time": rrxnlist, "r": r, "g": g, "b": b}
+
+# Create HSV data dict
+hsv_dict = {"time": rrxnlist, "h": h, "s": s, "v": v}
+
+# print(rgb_dict)
+# print(hsv_dict)
+
+# Create dataframes
+df_rgb = pd.DataFrame(rgb_dict)
+df_hsv = pd.DataFrame(hsv_dict)
+
+# Create save file name for RGB and HSV
+rgb_save_name = "rgb_data.csv"
+hsv_save_name = "hsv_data.csv"
+
+# Save CSV files
+df_rgb.to_csv(rgb_save_name)
+df_hsv.to_csv(hsv_save_name)
+
+print(f"CSV Saved: {rgb_save_name}")
+print(f"CSV Saved: {hsv_save_name}")
+
+# Linear Fit
+# y=s
+# x=rrxnlist
+#
+# num_points = len(x)
+#
+# min_fit_length = 100
+#
+# chi = 0
+#
+# chi_min = 10000
+#
+# i_best = 0
+# j_best = 0
+#
+# for i in range(len(x) - min_fit_length):
+#    for j in range(i+min_fit_length, len(x)):
+#
+#        coefs = polyfit(x[i:j],y[i:j],1)
+#        y_linear = x * coefs[0] + coefs[1]
+#        chi = 0
+#        for k in range(i,j):
+#            chi += ( y_linear[k] - y[k])**2
+#
+#        if chi < chi_min:
+#            i_best = i
+#            j_best = j
+#            chi_min = chi
+#            print(chi_min)
+#
+# coefs = polyfit(x[i_best:j_best],y[i_best:j_best],1)
+# y_linear = x[i_best:j_best] * coefs[0] + coefs[1]
+#
+#
+# fig = figure()
+# ax = fig.add_subplot(111)
+# ax.plot(x,y,'ro')
+# ax.plot(x[i_best:j_best],y_linear,'b-')
+# plt.show()
+#
