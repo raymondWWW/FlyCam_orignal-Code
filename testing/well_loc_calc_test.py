@@ -34,8 +34,10 @@ Ideas:
 -Save to CSV File
 
 TODO:
+- Create separate function to convert well location matrix to list of dict and save to CSv
 - Test row vs column generation, are the locations different?
 - [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
+- How to create snake pattern from well locations?
 
 
 Sources:
@@ -44,6 +46,7 @@ https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
 *Save list of dict to dataframe
 """
 
+import copy
 import pandas as pd
 
 # CONSTANTS
@@ -283,6 +286,15 @@ def get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bott
         all_well_locations.append(row_locations)
     print(f"all_well_locations: {all_well_locations}")
 
+    create_location_dataframe(num_row, num_col, all_well_locations)
+
+    create_snake_pattern(num_row, num_col, all_well_locations)
+
+    # TODO: Return all_well_locations list
+    pass
+
+
+def create_location_dataframe(num_row, num_col, all_well_locations):
     # See if row and columns were generated correctly
     # For a given row, only x should advance as you move right. The rest should stay the same
     # For a given column, only y should advance as you move down. The rest should stay the same.
@@ -292,7 +304,7 @@ def get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bott
         for col in range(num_col):
             print(f"row: {row}, col: {col}, loc: {all_well_locations[row][col]} ")
             print(f"col: {col}")
-            loc =  all_well_locations[row][col]
+            loc = all_well_locations[row][col]
             x_loc = loc[X]
             print(x_loc)
             row_dict = {"row": row, "col": col, X: loc[X], Y: loc[Y], Z: loc[Z]}
@@ -307,7 +319,61 @@ def get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bott
 
     # TODO: Save to unique file name or something better than this.
     df.to_csv("location_file.csv")
+    pass
 
+
+def create_snake_pattern(num_row, num_col, all_well_locations):
+    # Reverses every other row, or the odd numbered rows
+    print("create_snake_pattern")
+    well_loc_copy = copy.deepcopy(all_well_locations)
+    result = []
+    for row in range(num_row):
+        # print(row)
+        if row % 2:
+            print(f"row: {row} = odd")
+            # reverse row, then append
+            row_loc = well_loc_copy[row]
+            row_loc.reverse()
+            print(row_loc)
+            result.append(row_loc)
+        else:
+            print(f"row: {row} = even")
+            # append
+            result.append(well_loc_copy[row])
+    print(f"before: {all_well_locations}")
+    print(f"after: {result}")
+
+    # Check if the odd numbered rows do reverse
+    for row in range(num_row):
+        print("===========")
+        for col in range(num_col):
+            print(f"row: {row}, col: {col}")
+            print(f"before: {all_well_locations[row][col]}")
+            print(f"after: {well_loc_copy[row][col]}")
+
+    # create_location_dataframe(num_row, num_col, result)
+    save_snake_pattern(num_row, num_col, result)
+
+    pass
+
+
+def save_snake_pattern(num_row, num_col, snake_well_locations):
+    # Save only locations, no row/col (for now?)
+    print("save_snake_pattern")
+    result = []
+    for row in range(num_row):
+        print("===========")
+        for col in range(num_col):
+            print(f"row: {row}, col: {col}")
+            loc = snake_well_locations[row][col]
+            loc_dict = {X: loc[X], Y: loc[Y], Z: loc[Z]}
+            # print(loc)
+            result.append(loc_dict)
+            # print(result)
+
+    df = pd.DataFrame(result)
+    print(df.head(5))
+    df.to_csv("location_file_snake.csv")
 
     pass
 
