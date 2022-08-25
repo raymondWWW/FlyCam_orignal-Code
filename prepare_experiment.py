@@ -116,6 +116,37 @@ def create_and_get_folder_path():
     return folder_path_complete
 
 
+def create_and_get_folder_path2(dest_folder):
+    # Get Folder Path
+    #folder_path = "{}{}".format(C.FOLDERPATH, C.FOLDERNAME_PREFIX)
+    folder_path = os.path.join(dest_folder, C.FOLDERNAME_PREFIX)
+    # print(folder_path)
+    current_time = datetime.now()
+    folder_name_suffix = current_time.strftime("%Y-%m-%d_%H%M%S")
+    # print(folder_name_suffix)
+
+    folder_path_complete = ""
+
+    if C.isVideoCaptureModeOn == True:
+        print("Recording Video Footage")
+        folder_path_complete = "{}_Videos_{}".format(folder_path, folder_name_suffix)
+        print(folder_path_complete)
+    elif C.isPictureCaptureModeOn == True:
+        folder_path_complete = "{}_Pictures_{}".format(folder_path, folder_name_suffix)
+        print("Taking Pictures Only")
+
+    # Check if folder exists, if not, create it
+    if not os.path.isdir(folder_path_complete):
+        print("Folder Does NOT exist! Making New Folder")
+        os.mkdir(folder_path_complete)
+    else:
+        print("Folder Exists")
+
+    # Return Folder Path
+    return folder_path_complete
+
+
+
 # Define function that creates the full file path to save video or pictures (folder and file name)
 # Creates a unique file name using current date and time
 def get_file_full_path(folder_path, well_number):
@@ -141,11 +172,17 @@ def main():
 	# Test Folder/File Path
 	well_number = 1
 	
+	
 	folder_path_complete = create_and_get_folder_path()
 	print("folder_path_complete:", folder_path_complete)
 	
 	file_full_path = get_file_full_path(folder_path_complete, well_number)
 	print("file_full_path:", file_full_path)
+	
+	# dest_folder = "/home/pi"
+	dest_folder = r'/media/pi/Seagate Portable Drive'
+	folder_path_complete = create_and_get_folder_path2(dest_folder)
+	print("folder_path_complete v2:", folder_path_complete)
 
 
 # Test Code, will only run main() if run independently and not as a module
