@@ -29,6 +29,7 @@ Current TODO List:
          https://csveda.com/creating-tabbed-interface-using-pysimplegui/
 
 Changelog
+24 Aug 2022: User can choose where to save experiment folder (CAM tab)
 16 May 2022: Removed PiRGBArray Camera Preview and implemented PiCamera Preview + hacks for window control!
 25 Apr 2022: Fixed restart bug, can now run multiple experiments without restarting GUI!
              Solution: Use flag to make experiment function end and make forever while loop.
@@ -64,6 +65,8 @@ import get_current_location_m114 as GCL
 import printer_connection as printer
 import prepare_experiment as P
 import module_get_cam_settings as GCS
+import module_experiment_timer as ET
+import module_well_location_helper as WL
 
 # ==== USER CONSTANTS - GUI ====
 # TODO: Put these in a YAML GUI Settings File?
@@ -397,7 +400,170 @@ def run_experiment(event, values, thread_event, camera, preview_win_id):
     print("=========================")
     print("Experiment Stopped")
     print("=========================")
+
+
+def run_experiment2(event, values, thread_event, camera, preview_win_id):
+    """
+    Description: Runs experiment to take a picture, video, or preview (do nothing)
     
+    Input: PySimpleGUI window event and values
+    """
+    # global camera
+    global is_running_experiment
+    print("run_experiment with timer")
+    
+    if camera.preview:
+        camera.stop_preview()
+    
+    # Get Timer Values
+    total_seconds, run_seconds = ET.get_hour_min(event, values)
+    
+    # Dummy Data for faster code testing, delete when ready
+    # total_seconds = 40
+    # run_seconds = 10
+        
+    start_time = time.monotonic()
+    
+    elapsed_seconds = -1
+    
+    run_start = time.monotonic()
+    run_time_left = 0
+    run_elapsed = -1
+    
+    # Get CSV Filename
+    csv_filename = values[OPEN_CSV_FILEBROWSE_KEY]
+    
+    # Get Path List from CSV
+    path_list = P.get_path_list_csv(csv_filename)
+    
+    # Get GCODE Location List from path_list
+    gcode_string_list = P.convert_list_to_gcode_strings(path_list)
+    
+    # Go into Absolute Positioning Mode
+    printer.run_gcode(C.ABSOLUTE_POS)
+    
+    # Create New Folder If not in "Preview" Mode
+    if values[EXP_RADIO_PREVIEW_KEY] == False:
+        dest_folder = PIC_SAVE_FOLDER
+        # folder_path = P.create_and_get_folder_path(dest_folder)
+        folder_path = P.create_and_get_folder_path2(dest_folder)
+        print("Not in Preview Mode, creating folder:", folder_path)
+        
+    # Get Camera Settings Module
+    # Initialize unique CSV camera settings file
+    GCS.SAVE_CSV_FOLDER = folder_path
+    GCS.init_csv_file()
+    
+    # Create While loop to check if thread_event is not set (closing)
+    count_run = 0
+    # while not thread_event.isSet():
+    # while True:
+    while is_running_experiment:
+        
+        # TODO: Put in the rest of the code for Pic, Video, Preview from 3dprinter_start_experiment or prepare_experiment
+        
+        
+        
+        
+        if run_time_left <= 0:
+            print("=========================")
+            print("Run #", count_run)
+            well_number = 1
+            
+            for location in gcode_string_list:
+                # print(gcode_string)
+                printer.run_gcode(location)
+                print("Going to Well Number:", well_number)
+                time.sleep(4)
+                if values[EXP_RADIO_PREVIEW_KEY] == True:
+                    print("Preview Mode is On, only showing preview camera \n")
+                    # camera.start_preview(fullscreen=False, window=(30, 30, 500, 500))
+                    # time.sleep(5)
+                    
+                    # camera.stop_preview()
+                elif values[EXP_RADIO_VID_KEY] == True:
+                    print("Recording Video Footage")
+                    file_full_path = P.get_file_full_path(folder_path, well_number)
+                    # TODO: Change to Video Captures
+                    # camera.capture(file_full_path)
+                elif values[EXP_RADIO_PIC_KEY] == True:
+                    print("Taking Pictures Only")
+                    file_full_path = P.get_file_full_path(folder_path, well_number)
+                    # print(file_full_path)
+                    
+                    # Change Image Capture Resolution
+                    # pic_width = PIC_WIDTH
+                    # pic_height = PIC_HEIGHT
+                    
+                    #camera.stop_preview()
+                    #camera.resolution = (pic_width, pic_height)
+                    # time.sleep(.1)
+                    #camera.capture(file_full_path)
+                    # camera.start_preview()
+                    #start_camera_preview(event, values, camera, preview_win_id)
+                    
+                    
+                    get_well_picture(camera, file_full_path)
+                    
+                    data_row = GCS.gen_cam_data(file_full_path, camera)
+                    GCS.append_to_csv_file(data_row)
+                    
+                    # Return to streaming resolution: 640 x 480 (or it will crash)
+                    # Bug: Crashes anyway because of threading
+                    #camera.resolution = (VID_WIDTH, VID_HEIGHT)
+                    # TODO: Look up Camera settings to remove white balance (to deal with increasing brightness)
+                # Outside if/elif chain
+                well_number += 1
+            # Outside of location for loop
+            count_run += 1
+            # Reset run_time_left
+            run_time_left = run_seconds
+
+            # Reset run_start
+            run_start = time.monotonic()
+
+            print(f"Will wait {run_seconds} sec before doing next run.")
+
+            # Display time left until end of experiment
+            print(f"Time left until end of experiment: {(total_seconds - elapsed_seconds):.1f} sec")
+            # May implement the following to break out of loop first. Helpful for lots of wells
+            """    
+            if is_running_experiment == False:
+                print("Stopping Experiment...")
+                return
+            """
+            
+        # Out of if run_time < 0 statement
+        
+        
+        current_time = time.monotonic()
+        elapsed_seconds = current_time - start_time
+        
+        run_elapsed = current_time - run_start
+        run_time_left = run_seconds - run_elapsed
+        
+        # if elapsed_seconds + run_seconds < total_seconds:
+            # print(f"Will wait {run_seconds} seconds until collecting data again")
+            # time.sleep(run_seconds)
+        if elapsed_seconds + run_seconds > total_seconds:
+            print(f"Doing another run will go over set time limit, stopping experiment.")
+            is_running_experiment = False
+            break
+        
+        
+        # Use For Loop to go through each location
+        # TODO: Preview doesn't show preview camera
+        # Original
+        # for location in gcode_string_list:
+            # # print(location)
+            # printer.run_gcode(location)
+            # time.sleep(5)
+        
+        
+    print("=========================")
+    print("Experiment Stopped")
+    print("=========================")
+
 # Takes in event and values to check for radio selection (Pictures, Videos, or Preview)
 # Takes in CSV filename or location list generated from opening CSV file
 #    Use get_path_list_csv(csv_filename) and convert_list_to_gcode_strings(path_list) from prepare_experiment module
@@ -1241,8 +1407,8 @@ def set_exposure_mode(event, values, window, camera):
     
     # Exposure Mode
     # camera.framerate = 30
-    camera.shutter_speed = 30901
-    # camera.shutter_speed = camera.exposure_speed
+    # camera.shutter_speed = 30901
+    camera.shutter_speed = camera.exposure_speed
     camera.exposure_mode = 'off'
     g = camera.awb_gains
     camera.awb_mode = 'off'
@@ -1316,7 +1482,7 @@ def main():
     # camera.exposure_mode = 'fireworks'
     
     # Set AWB Mode
-    # camera.awb_mode = 'cloudy'
+    # camera.awb_mode = 'tungsten'
     
     # Let Camera Settings Settle:
     pre_value = camera.digital_gain
@@ -1396,7 +1562,9 @@ def main():
     # Tab 1: Start Experiment Tab
     # TODO: Create 3 Radio Buttons for Picture, Video, Preview (Default), and Prompt "Choose to take Pictures, Video, or only preview locations"
     # TODO: Create User Input for number of Trials (use placeholder)
+    time_layout = ET.get_time_layout()
     tab_1_layout = [ [sg.Text(OPEN_CSV_PROMPT), sg.Input(), sg.FileBrowse(key=OPEN_CSV_FILEBROWSE_KEY)],
+                     time_layout[0], time_layout[1], time_layout[2], time_layout[3], time_layout[4],
                      [sg.Text(EXP_RADIO_PROMPT)],
                      [sg.Radio(EXP_RADIO_PIC_TEXT, EXP_RADIO_GROUP, default=False, key=EXP_RADIO_PIC_KEY),
                         sg.Radio(EXP_RADIO_VID_TEXT, EXP_RADIO_GROUP, default=False, key=EXP_RADIO_VID_KEY),
@@ -1424,7 +1592,8 @@ def main():
     # Width
     # Height
     # Set Camera Settings Button
-    tab_3_layout = [ [sg.Text("Camera Rotation (in Degrees):"), sg.InputText("0", size=(10, 1), enable_events=True, key=CAMERA_ROTATION_KEY)],
+    # TODO: Change default Camera Rotation to settings file if it exists.
+    tab_3_layout = [ [sg.Text("Camera Rotation (in Degrees):"), sg.InputText("270", size=(10, 1), enable_events=True, key=CAMERA_ROTATION_KEY)],
                      [sg.Text("Set Image Capture Resolution:")],
                      [sg.Text("Pic Width (in pixels):"), sg.InputText(PIC_WIDTH, size=(10, 1), enable_events=True, key=PIC_WIDTH_KEY)],
                      [sg.Text("Pic Height (in pixels):"),sg.InputText(PIC_HEIGHT, size=(10, 1), enable_events=True, key=PIC_HEIGHT_KEY)],
@@ -1454,6 +1623,7 @@ def main():
                      [sg.Button(START_PREVIEW), sg.Button(STOP_PREVIEW)]
                    ]
     
+    tab_6_layout = WL.get_cross_hair_layout()
     
     # TABs Layout (New, Experimental
     # TODO: Put in Pic/Video Button, test them out.
@@ -1462,7 +1632,8 @@ def main():
                               sg.Tab("Tab 2 (Mvmt)", tab_2_layout),
                               sg.Tab("Tab 3 (CAM)", tab_3_layout),
                               sg.Tab("Tab 4 (Z Stack)", tab_4_layout),
-                              sg.Tab("Tab 5 (Camera Preview)", tab_5_layout)]])
+                              sg.Tab("Tab 5 (Camera Preview)", tab_5_layout),
+                              sg.Tab("Tab 6 (Loc Helper)", tab_6_layout)]])
                ],
                [sg.Button("Pic"), sg.Button("Vid"), sg.Button("Pic x 10")]
              ]
@@ -1584,6 +1755,8 @@ def main():
             window[START_EXPERIMENT].update(disabled=False)
             # print("values[OPEN_CSV_FILEBROWSE_KEY]:", values[OPEN_CSV_FILEBROWSE_KEY])
             # print(len(values[OPEN_CSV_FILEBROWSE_KEY]))
+            # Disable "Stop Experiment" button
+            window[STOP_EXPERIMENT].update(disabled=True)
         else:
             # print("CSV File Does Not Exist")
             # Disable "Start Experiment" button
@@ -1608,7 +1781,7 @@ def main():
             window[STOP_EXPERIMENT].update(disabled=False)
             
             # Create actual experiment_thread
-            experiment_thread = threading.Thread(target=run_experiment, args=(event, values, thread_event, camera, preview_win_id), daemon=True)
+            experiment_thread = threading.Thread(target=run_experiment2, args=(event, values, thread_event, camera, preview_win_id), daemon=True)
             experiment_thread.start()
             
             # Create Unique Folder, Get that Unique Folder's Name
@@ -1772,6 +1945,9 @@ def main():
             print(f"Save folder: {save_folder}")
             PIC_SAVE_FOLDER = save_folder
 
+        
+        if event in WL.ALL_CROSS_HAIR_EVENTS:
+            WL.event_manager(event, values, window, camera)
         
         # print("You entered ", values[0])
         
