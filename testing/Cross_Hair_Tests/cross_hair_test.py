@@ -25,6 +25,7 @@ import cv2
 import PySimpleGUI as sg
 
 from os.path import join
+from PIL import ImageColor
 
 # Events
 LOAD_IMAGE = "Update/Load Image"
@@ -47,11 +48,12 @@ CIRCLE_EVENT_LIST = [RAD_MINUS_TEN, RAD_MINUS_ONE, RAD_PLUS_ONE, RAD_PLUS_TEN]
 LINE_THICKNESS_KEY = "-=LINE THICKNESS KEY=-"
 LINE_THICKNESS = 1
 
+COLOR_CHOOSER_KEY = "-= COLOR CHOOSER KEY =-"
 
-ALL_CROSS_HAIR_EVENTS = [LOAD_IMAGE, RAD_MINUS_TEN, RAD_MINUS_ONE, RAD_PLUS_ONE, RAD_PLUS_TEN]
+ALL_CROSS_HAIR_EVENTS = [LOAD_IMAGE, RAD_MINUS_TEN, RAD_MINUS_ONE, RAD_PLUS_ONE, RAD_PLUS_TEN, COLOR_CHOOSER_KEY]
 
 
-def update_circle(event, values, window, camera):
+def update_circle(event, values, window):
     global CIRCLE_RADIUS, CIRCLE_THICKNESS
 
     if event == LOAD_IMAGE:
@@ -77,7 +79,8 @@ def update_circle(event, values, window, camera):
     update_line_thickness(values)
 
     # Draw/Update the Image
-    draw_on_image(camera)
+    # draw_on_image(camera)
+    draw_on_image()
 
 
 def update_line_thickness(values):
@@ -89,18 +92,18 @@ def update_line_thickness(values):
     pass
 
 
-def draw_on_image(camera):
+def draw_on_image():
 
     # Temp image get
     
-    #image = get_dummy_image()
-    #image_edit = image.copy()
+    image = get_dummy_image()
+    image_edit = image.copy()
     
     # Get image from camera
-    temp_filename = "temp.jpg"
-    camera.capture(temp_filename)
-    image = cv2.imread(temp_filename)
-    image_edit = image.copy()
+    # temp_filename = "temp.jpg"
+    # camera.capture(temp_filename)
+    # image = cv2.imread(temp_filename)
+    # image_edit = image.copy()
 
     # Make a copy of image
     # Get dimensions of image
@@ -126,7 +129,7 @@ def draw_on_image(camera):
 
     # On copy, Draw circle at center x/y with radius
     center_coordinates = (center_x, center_y)
-    image_edit = cv2.circle(image_edit, center_coordinates, CIRCLE_RADIUS, color, CIRCLE_THICKNESS)
+    image_edit = cv2.circle(image_edit, center_coordinates, CIRCLE_RADIUS, CIRCLE_COLOR, CIRCLE_THICKNESS)
 
     # Display Image
     cv2.imshow("Cross Hair Preview", image_edit)
@@ -138,12 +141,12 @@ def get_dummy_image():
     # Dummy Image as placecholder
     
     # Windows
-    # image_folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\7-25-2022\Code_Pictures_2022-07-25_171105_auto'
+    image_folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\7-25-2022\Code_Pictures_2022-07-25_171105_auto'
     image_file = r'well1_2022-07-25_171110.jpg'
     
     # RPi
-    image_folder = r'/home/pi/Projects/3dprinter_sampling/Test Pictures/8-24-2022'
-    image_file = r'test_2022-08-24_161919_640x480.jpg'
+    # image_folder = r'/home/pi/Projects/3dprinter_sampling/Test Pictures/8-24-2022'
+    # image_file = r'test_2022-08-24_161919_640x480.jpg'
     
     # image_location
     image_path = join(image_folder, image_file)
@@ -154,16 +157,16 @@ def get_dummy_image():
     return image_resize
 
 
-
-
 def get_cross_hair_layout():
+
     layout = [[sg.Button(LOAD_IMAGE)],
               [sg.Text("Circle Radius:"),
                sg.Button("-10", key=RAD_MINUS_TEN), sg.Button("-1", key=RAD_MINUS_ONE),
                sg.Input(CIRCLE_RADIUS, size=(4, 1), key=RAD_KEY),
                sg.Button("+1", key=RAD_PLUS_ONE), sg.Button("+10", key=RAD_PLUS_TEN)],
               [sg.Text("Circle Thickness:"), sg.Input(CIRCLE_THICKNESS, size=(4, 1), key=CIRCLE_THICKNESS_KEY)],
-              [sg.Text("Line Thickness:"), sg.Input(LINE_THICKNESS, size=(4, 1), key=LINE_THICKNESS_KEY)]]
+              [sg.Text("Line Thickness:"), sg.Input(LINE_THICKNESS, size=(4, 1), key=LINE_THICKNESS_KEY)],
+              [sg.Input(size=(8, 1), key="-= COLOR CHOOSER KEY =-", enable_events=True), sg.ColorChooserButton("Pick a Color", target="-= COLOR CHOOSER KEY =-")]]
     
     # TODO: Get Color Chooser Button to work
     # [sg.ColorChooserButton("Pick a Color", key="-= COLOR CHOOSER KEY =-")]
@@ -171,12 +174,25 @@ def get_cross_hair_layout():
     return layout
 
 
-def event_manager(event, values, window, camera):
+def update_color(event, values, window):
+    global CIRCLE_COLOR
+    print("New color was chosen")
+    print(f"New Color: {values[event]}")
+    rgb_color = ImageColor.getcolor(values[event], "RGB")
+    print(f"RGB: {rgb_color}")
+    bgr_color = (rgb_color[2], rgb_color[1], rgb_color[0])
+    print(f"BGR: {bgr_color}")
+    CIRCLE_COLOR = bgr_color
+    pass
+
+
+# def event_manager(event, values, window, camera):
+def event_manager(event, values, window):
     
     if event in CIRCLE_EVENT_LIST:
         # print("Circle event detected")
-        update_circle(event, values, window, camera)
-
+        # update_circle(event, values, window, camera)
+        update_circle(event, values, window)
 
     if event == LOAD_IMAGE:
         # print(f"Pressed: {LOAD_IMAGE}")
@@ -184,9 +200,13 @@ def event_manager(event, values, window, camera):
         # Update Line Thickness
         update_line_thickness(values)
 
-        update_circle(event, values, window, camera)
+        update_circle(event, values, window)
 
-        draw_on_image(camera)
+        draw_on_image()
+
+    if event == COLOR_CHOOSER_KEY:
+        update_color(event, values, window)
+
     
     pass
     
@@ -211,9 +231,9 @@ def main():
     
     # Setup Camera
     
-    camera = PiCamera()
-    camera.resolution = (640, 480)
-    camera.framerate = 32
+    # camera = PiCamera()
+    # camera.resolution = (640, 480)
+    # camera.framerate = 32
 
     # circle_event_list = [RAD_MINUS_TEN, RAD_MINUS_ONE, RAD_PLUS_ONE, RAD_PLUS_TEN]
 
@@ -243,13 +263,14 @@ def main():
     while True:
         event, values = window.read()
 
-        # print(event, values)
+        print(event, values)
         
         if event == sg.WIN_CLOSED:
             break
             
         if event in ALL_CROSS_HAIR_EVENTS:
-            event_manager(event, values, window, camera)
+            # event_manager(event, values, window, camera)
+            event_manager(event, values, window)
         """
         if event in CIRCLE_EVENT_LIST:
             # print("Circle event detected")
@@ -275,7 +296,7 @@ def main():
 
 if __name__ == "__main__":
     # Load PiCamera Library
-    from picamera import PiCamera
+    # from picamera import PiCamera
     
     main()
     # main2()
