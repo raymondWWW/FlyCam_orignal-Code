@@ -2,6 +2,8 @@
 Algorithm Test for calculating well locations
 using the centers of the corner wells of the well plates
 
+Author: Johnny Duong
+
 Input number of rows and columns
 
 Test 1, Row: [Done]
@@ -34,7 +36,7 @@ Ideas:
 -Save to CSV File
 
 TODO:
-- Create separate function to convert well location matrix to list of dict and save to CSv
+- [DONE] Create separate function to convert well location matrix to list of dict and save to CSV
 - Test row vs column generation, are the locations different?
 - [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
 - Clean code up.
@@ -43,6 +45,9 @@ Sources:
 
 https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
 *Save list of dict to dataframe
+
+Changelog:
+8-27-2022: Started Changelog. Well plate location generator using 4 corners works. Snake pattern created.
 """
 
 import copy
@@ -416,9 +421,20 @@ def main():
 
     get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bottom_left, bottom_right)
 
+    pass
 
 
+def main2():
+    print("main2")
+    # GUI Tests.
 
+    # Setup GUI theme
+
+    # Setup GUI layout
+
+    # Setup GUI window
+
+    # Setup GUI while loop
     pass
 
 
