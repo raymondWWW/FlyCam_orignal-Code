@@ -1,25 +1,20 @@
 """
 Cross Hair Test
+Author: Johnny Duong
 
-Algorithm:
-GUI, button to Update Image (takes from preview)
-GUI, same circle radius as SimpleGUI
-Get preview dimensions
-Load image
-Make a copy of image
-Get dimensions of image
-Get center x, center y.
-On Copy, Draw line, center x, from min y to max y
-On Copy, Draw line, center y, from min x to max x
-On copy, Draw circle at center x/y with radius
-Display Image
+Description: Draws cross hairs on image for easier centering.
+Cross hair is made up of horizontal and vertical lines intersecting the center of the image,
+and a circle with an adjustable radius. Line and circle thickness can be changed (filled circle disabled for now).
+GUI will check for numbers only in the input boxes for line and circle thickness.
+User can change color for circle and line.
 
+Future Ideas
+-How to auto-update crosshair preview when moving around 3D printer in MVMT tab
+-Ellipse instead of circle?
 
-TODO:
--Circle overlay opacity? Color change?
--Research ellipse?
--Check if default number, does it change later?
--Color Wheel, get it working. (Use a text or input box to capture the value)
+Changelog:
+8-27-2022: Started changelog. Working Cross hair GUI. Create dummy PiCamera class for easier RPi transfer.
+
 """
 import cv2
 import PySimpleGUI as sg
