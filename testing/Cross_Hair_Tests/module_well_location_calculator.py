@@ -10,16 +10,14 @@ Ideas:
 -Probably only include snaking path.
 
 TODO:
--Put in folder browse
 -Put in CSV Loc button/generator
 -Put in Snake pattern generator
 -Create dummy printer object
--Put in num row/col extraction
 -Put in well location calculator functions
 -Put in digit checker for row/col
 -Test with combining layout lists
--Convert dictionary to text for display in input for corners
-result = {"X": -1.00, "Y": -1.00, "Z": -1.00}
+-Allow user to put in location
+ -Put in X, Y, Z separate boxes?
 
 
 Changelog:
@@ -28,6 +26,8 @@ Changelog:
 
 # Import Statements
 import PySimpleGUI as sg
+
+from datetime import datetime
 
 # For Testing Code when not connected to a Raspberry Pi Camera and 3D printer
 # ==================================================================================================================
@@ -59,6 +59,16 @@ BOTTOM_LEFT_INPUT = "-=BOTTOM LEFT INPUT=-"
 TOP_RIGHT_INPUT = "-=TOP RIGHT INPUT=-"
 BOTTOM_RIGHT_INPUT = "-=BOTTOM RIGHT INPUT=-"
 
+TOP_LEFT_DICT = {"X": 1.00, "Y": 1.00, "Z": 1.00}
+BOTTOM_LEFT_DICT = {"X": 1.00, "Y": 1.00, "Z": 1.00}
+TOP_RIGHT_DICT = {"X": 1.00, "Y": 1.00, "Z": 1.00}
+BOTTOM_RIGHT_DICT = {"X": 1.00, "Y": 1.00, "Z": 1.00}
+
+DEFAULT_LOC_DICT = {"X": 1.00, "Y": 1.00, "Z": 1.00}
+
+# Init CORNER_LOC_DICT, use for Path Creation
+CORNER_LOC_DICT = {TOP_LEFT_KEY: DEFAULT_LOC_DICT, BOTTOM_LEFT_KEY: DEFAULT_LOC_DICT,
+                   TOP_RIGHT_KEY: DEFAULT_LOC_DICT, BOTTOM_RIGHT_KEY: DEFAULT_LOC_DICT}
 
 CORNER_INPUT_SIZE = (24, 1)
 
@@ -111,7 +121,11 @@ def get_loc_as_str(loc_dict):
         # print(key, val)
 
         # Concatenate string, add each value at the end.
-        result = result + f"{key}:{val:.2f} "
+        result = result + f"{key}:{val:.2f}"
+
+        # Add commas at the end unless it is the Z
+        if key != "Z":
+            result = result + ", "
 
     # Print result, make sure string was concatenated, example: X:1.00 Y:1.00 Z:1.00
     # print(result)
@@ -148,8 +162,15 @@ def event_manager(event, values, window):
                 # Update input text
                 window[input_key].update(display_loc)
 
+                # Save to global variable
+                update_location_variables(event, current_location)
+
+                # global CORNER_LOC_DICT
+                # CORNER_LOC_DICT[event] = current_location
+
     if event == BUTTON_SNAKE_PATTERN_LOCATION:
         print(event)
+        print(CORNER_LOC_DICT)
 
     # Update Save Folder if chosen
     if len(values[SAVE_FOLDER_KEY]) != 0:
@@ -158,11 +179,20 @@ def event_manager(event, values, window):
         # Print save folder to see if it actually updated
         # print(f"SAVE_FOLDER_LOCATION: {SAVE_FOLDER_LOCATION}")
 
-    # Get current location
-    #  Convert to simple format, e.g. X:1, Y:1, Z:1
-    # Store into global variable
-    # Display in associated input bo
+    pass
 
+
+def update_location_variables(event, current_location):
+    # print("update_location_variables")
+    # print(event)
+
+    global CORNER_LOC_DICT
+
+    # Update global CORNER_LOC_DICT
+    CORNER_LOC_DICT[event] = current_location
+
+    # Print CORNER_LOC_DICT to make sure it works
+    # print(CORNER_LOC_DICT)
     pass
 
 
@@ -198,6 +228,15 @@ def update_save_folder(values):
 
 # Well Location Calculation Functions
 
+
+# Other Helper Functions
+
+# Define function to create unique text string using date and time.
+def get_unique_id():
+    current_time = datetime.now()
+    unique_id = current_time.strftime("%Y-%m-%d_%H%M%S")
+    # print(f"unique_id: {unique_id}")
+    return unique_id
 
 # Main Function
 
@@ -249,7 +288,7 @@ def main():
               [sg.Text("Step 1: Input number of rows and columns of well plate.")],
               [sg.Column(dim_left), sg.Column(dim_right)],
               [sg.HorizontalSeparator()],
-              [sg.Text("Step 2: Move camera, click on 'Set Loc' at each corner of well plate.")],
+              [sg.Text("Step 2: Move camera around, click on 'Set Loc' at each corner of well plate.")],
               [sg.Column(corner_left), sg.VerticalSeparator(), sg.Column(corner_right)],
               [sg.HorizontalSeparator()],
               [sg.Text("Step 3: Choose Folder to save Locations File.")],
