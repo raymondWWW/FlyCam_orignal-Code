@@ -1,3 +1,14 @@
+"""
+
+TODO:
+-Get folder name from image folder (not well)
+-Use folder name as prefix for save RGB/HSV CSV files
+-Put selection dim on selection image
+-Figure out curve_fit?
+-Bonus: do selection image for first and last image
+
+"""
+
 ###room for improvement
 # error carching, do not process images withou correct circle detection
 
