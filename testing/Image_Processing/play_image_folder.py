@@ -36,7 +36,9 @@ from datetime import datetime
 from os import listdir
 from os.path import isfile, join
 
-IMAGE_FOLDER = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\7-22-2022\Code_Pictures_2022-07-21_194944'
+# IMAGE_FOLDER = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\7-22-2022\Code_Pictures_2022-07-21_194944'
+
+IMAGE_FOLDER = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-28-2022\Code_Pictures_2022-08-24_181456\Well1'
 
 SAVE_FOLDER = r'D:\Projects\3dprinter_sampling\testing\Image_Processing\cropped'
 
@@ -161,6 +163,25 @@ def get_filename_data(filename):
     return result
 
 
+def main4():
+
+    folder_path = IMAGE_FOLDER
+    file_list = get_image_list(folder_path)
+    counter = 0
+    for file in file_list:
+        print(f"Image {counter} / {len(file_list)}")
+        image = cv2.imread(join(folder_path, file), cv2.IMREAD_COLOR)
+        frame = cv2.resize(image, (640, 480))
+
+        cv2.imshow("frame", frame)
+        cv2.waitKey(10)
+        counter += 1
+
+    cv2.destroyAllWindows()
+
+    pass
+
+
 def main3():
     # Note: This method does not work, empty video is created
     # Save images as video only
@@ -174,7 +195,8 @@ def main3():
     width = 640
     height = 480
 
-    out_video = np.empty([40, height, width, 3], dtype=np.uint8)
+    # out_video = np.empty([40, height, width, 3], dtype=np.uint8)
+    out_video = np.empty([len(file_list), height, width, 3], dtype=np.uint8)
     out_video = out_video.astype(np.uint8)
 
     counter = 0
@@ -182,8 +204,8 @@ def main3():
     for file in file_list:
         print(f"Image {counter} / {len(file_list)}")
 
-        if counter >= 40:
-            break
+        # if counter >= 40:
+        #     break
 
         # load image as color
         image = cv2.imread(join(folder_path, file), cv2.IMREAD_COLOR)
@@ -219,6 +241,16 @@ def main():
 
     # TODO: Get resize factor, resize image, show selectROI, get crop box then change to resize factor
     # r = cv2.selectROI("select the area", image)
+
+    # D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-28-2022\Code_Pictures_2022-08-24_181456\Well1
+    # No sample, hardware test
+    # width = 2340
+    # height = 2370
+    # x0 = 850
+    # y0 = 340
+    # x1 = x0 + width
+    # y1 = y0 + height
+
     # Well 1
     # x = 750
     # y = 230
@@ -357,7 +389,7 @@ def main():
         save_full_path = join(SAVE_FOLDER, save_file_name)
 
         # Save image
-        cv2.imwrite(save_file_name, resized_image)
+        cv2.imwrite(save_full_path, resized_image)
 
         # --- START VIDEO SAVE ---
         # Working Image to Video Save, but resize is restricting. Need to figure out how to add black borders to maintain aspect ratio
@@ -395,6 +427,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # main2()
-    # main3()
+    main3()
+    # main4()

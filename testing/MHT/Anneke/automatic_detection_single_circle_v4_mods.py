@@ -19,7 +19,7 @@ from numpy import pi, sin, linspace, exp, polyfit
 from matplotlib.pyplot import figure, show
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
                                AutoMinorLocator)
-well="well1"
+well="well"
 thresh=110
 blur=7
 h=[]
@@ -53,7 +53,10 @@ rrxnlist=[]
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08082022_stdassay_run2'
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01'
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01_temp'
-folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate'
+# folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate'
+folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\08302022_200ulPNPA_1800ulbuffer_run3_focused\Well2'
+
+
 
 isFirstTime = True
 x1, y1, x2, y2 = 0, 0, 0, 0
@@ -112,6 +115,36 @@ for file in os.listdir(folder):
                 # # Get coordinates of ROI
                 # x1, y1, x2, y2 = r
 
+
+                # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well1
+                # (131, 94, 109, 79)
+                # x1 = 131
+                # y1 = 94
+                # x2 = 109
+                # y2 = 79
+
+                # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well2
+                # r: (148, 102, 64, 59)
+                # x1 = 131
+                # y1 = 94
+                # x2 = 109
+                # y2 = 79
+                x1, y1, x2, y2 = (148, 102, 64, 59)
+
+                # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well3
+                # (131, 90, 106, 81)
+                # x1 = 131
+                # y1 = 90
+                # x2 = 106
+                # y2 = 81
+
+                # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well4
+                # (160, 108, 57, 53)
+                # x1 = 160
+                # y1 = 108
+                # x2 = 57
+                # y2 = 53
+
                 # PH_08122022_PNPA_pHdep_Assay_run01
                 # x1 = 187
                 # y1 = 74
@@ -128,10 +161,10 @@ for file in os.listdir(folder):
 
                 # Left Image
                 # r: (106, 139, 44, 32)
-                x1 = 106
-                y1 = 139
-                x2 = 44
-                y2 = 32
+                # x1 = 106
+                # y1 = 139
+                # x2 = 44
+                # y2 = 32
 
                 # Draw selection rectangle on image and save it.
                 # Start coordinate, here (100, 50)
@@ -211,6 +244,7 @@ for file in os.listdir(folder):
             si = blurHSVIM_cropped[:, :, 1]
             #   Get average of si, store in s numpy array
             s=np.append(s,int(np.average(si)))
+            print(f"s: {s}")
 
             #   Extract v channel, store in vi
             vi = blurHSVIM_cropped[:, :, 2]
@@ -310,7 +344,8 @@ for i in range(len(h)):
 sn=[]
 for i in range(len(s)):
     print(s[i]-s[i-2])
-    if abs(s[i]-s[i-2])>3:
+    # TODO: Line 337, Originally 3, changed 1
+    if abs(s[i]-s[i-2])>1:
         sn=np.append(sn, s[i])
     else:
         break
@@ -385,8 +420,6 @@ plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize ='lar
 
 
 plt.show()
-
-
 
 
 def display_images(
