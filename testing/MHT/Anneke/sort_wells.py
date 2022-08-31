@@ -11,6 +11,7 @@ def main():
     print("main")
 
     # Load full folder path
+    folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\8-31-2022\dummy_folder'
 
     # Get file list from folder path
 
