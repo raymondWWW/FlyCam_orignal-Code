@@ -65,12 +65,42 @@ rrxnlist=[]
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01'
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08122022_PNPA_pHdep_Assay_run01_temp'
 # folder = r'D:\Documents\SF State\Dr. E Lab\Spring 2022\RoboCam\8-15-2022\RoboCam\MHT\PH_08132022_200ulPNPA_1800ulBuffer_nolight_12wellblkplate'
-folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\08302022_200ulPNPA_1800ulbuffer_run3_focused\Well2'
-
-
+# folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\08302022_200ulPNPA_1800ulbuffer_run3_focused\Well2'
+# folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\8-31-2022\08312022_MeI_stds_run2\well6'
+folder = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\8-31-2022\PH_08052022_ppMHT_ppMHTmCh_run2\well12'
 
 isFirstTime = True
 x1, y1, x2, y2 = 0, 0, 0, 0
+
+folder_data_headers = ["data_name", "well_name", "save_folder"]
+DATA_NAME = folder_data_headers[0]
+WELL_NAME = folder_data_headers[1]
+SAVE_FOLDER = folder_data_headers[2]
+
+
+def get_folder_data(folder_path):
+    # Assumes string format: D:\Documents\SF State\Dr. E Lab\MHT\Data\08302022_200ulPNPA_1800ulbuffer_run3_focused\Well2
+    # Get folder name, not the well2
+    dest_index = -2
+    parsed_str = folder_path.split(sep="\\")
+    data_name = parsed_str[dest_index]
+    print(f"data_name: {data_name}")
+    well_name = parsed_str[-1]
+    print(f"well_name: {well_name}")
+    save_folder = f"D:\\"
+    # Go through parsed_str, create new save folder, but exclude well_name
+    parsed_str_len = len(parsed_str)
+    for i in range(1, parsed_str_len - 1):
+        save_folder = os.path.join(save_folder, parsed_str[i])
+    print(f"save_folder: {save_folder}")
+    result = {'data_name': data_name, "well_name": well_name, "save_folder": save_folder}
+    return result
+
+
+# Test code for get_folder_data()
+# folder_path = r'D:\Documents\SF State\Dr. E Lab\MHT\Data\8-31-2022\08312022_MeI_stds_run2\well1'
+folder_data = get_folder_data(folder)
+# print(folder_data)
 
 
 for file in os.listdir(folder):
@@ -117,14 +147,17 @@ for file in os.listdir(folder):
 
             # print('blurHSVIM Datatype:', blurHSVIM.dtype)
 
-
             if isFirstTime:
                 # Allow user to select ROI
                 # Select ROI
                 # r = cv2.selectROI("select the area", s_img)
                 # print(f"r: {r}")
-                # # Get coordinates of ROI
+                x1, y1, x2, y2 = (127, 90, 76, 69)
+                # # Get coordinates
+                # tes of ROI
                 # x1, y1, x2, y2 = r
+
+                # x1, y1, x2, y2 = (122, 74, 88, 74)
 
 
                 # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well1
@@ -140,7 +173,7 @@ for file in os.listdir(folder):
                 # y1 = 94
                 # x2 = 109
                 # y2 = 79
-                x1, y1, x2, y2 = (148, 102, 64, 59)
+                # x1, y1, x2, y2 = (148, 102, 64, 59)
 
                 # 08302022_200ulPNPA_1800ulbuffer_run3_focused\Well3
                 # (131, 90, 106, 81)
@@ -199,9 +232,11 @@ for file in os.listdir(folder):
                 # cv2.imshow("s_img_rect", s_img_rect)
                 # cv2.waitKey(10000)
 
-                save_filename = "sample_image.png"
+                save_filename = f"{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_sample_image.png"
+                save_full_path = os.path.join(folder_data[SAVE_FOLDER], save_filename)
 
-                cv2.imwrite(save_filename, s_img_rect)
+                cv2.imwrite(save_full_path, s_img_rect)
+                print(f"Saved image to: {save_full_path}")
 
                 # Create and save image with selection shown.
 
@@ -255,7 +290,7 @@ for file in os.listdir(folder):
             si = blurHSVIM_cropped[:, :, 1]
             #   Get average of si, store in s numpy array
             s=np.append(s,int(np.average(si)))
-            print(f"s: {s}")
+            # print(f"s: {s}")
 
             #   Extract v channel, store in vi
             vi = blurHSVIM_cropped[:, :, 2]
@@ -412,25 +447,27 @@ ax.plot(rrxnlist[:len(sn)], sn, label='S', color='blue')
 ##ax.tick_params(which='both', width=2)
 ##ax.tick_params(which='major', length=7
 
-coefficient_v= np.polyfit(rrxnlist[:len(sn)], sn, 1)
-poly_v= np.poly1d(coefficient_v)
-new_x_v = np.linspace(slinerrxnlist[0], slinerrxnlist[-1])
-new_y_v = poly_v(new_x_v)
-ax.plot(new_x_v, new_y_v, label='linear fit', color="black")
-print('equation: ', poly_v)
-vx= (v[1]-poly_v[1])/poly_v[0]
-print('x value in v: ', vx)
+# # Linear Fit Plot
+# coefficient_v= np.polyfit(rrxnlist[:len(sn)], sn, 1)
+# poly_v= np.poly1d(coefficient_v)
+# new_x_v = np.linspace(slinerrxnlist[0], slinerrxnlist[-1])
+# new_y_v = poly_v(new_x_v)
+# ax.plot(new_x_v, new_y_v, label='linear fit', color="black")
+# print('equation: ', poly_v)
+# vx= (v[1]-poly_v[1])/poly_v[0]
+# print('x value in v: ', vx)
+#
+# ax.minorticks_on()
+# ax.tick_params(which='minor', length=4)
+#
+#
+# plt.xlabel('time (s)')
+# plt.ylabel('Saturation')
+# plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize ='large')
+# plt.tight_layout()
+# plt.savefig(f"{folder_data[SAVE_FOLDER]}\{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_linear_fit")
 
-ax.minorticks_on()
-ax.tick_params(which='minor', length=4)
-
-
-plt.xlabel('time (s)')
-plt.ylabel('Saturation')
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize ='large')
-
-
-plt.show()
+# plt.show()
 
 
 def display_images(
@@ -483,7 +520,9 @@ ax.tick_params(which='minor', length=4)
 plt.xlabel('time (s)')
 plt.ylabel('HSV')
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize ='large')
-plt.show()
+plt.tight_layout()
+plt.savefig(f"{folder_data[SAVE_FOLDER]}\{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_hsv")
+# plt.show()
 
 #plt.subplot(1, 2, 2)
 fig, ax = plt.subplots()
@@ -502,8 +541,13 @@ plt.xlabel('time (s)')
 plt.ylabel('RGB')
 #plt.title(split_string[1]+'_' + well )
 plt.tight_layout()
-plt.savefig(split_string[1] + well)
-plt.show()
+# plt.savefig(split_string[1] + well)
+plt.savefig(f"{folder_data[SAVE_FOLDER]}\{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_rgb")
+# plt.show()
+
+# DATA_NAME = folder_data_headers[0]
+# WELL_NAME = folder_data_headers[1]
+# SAVE_FOLDER = folder_data_headers[2]
 
 # TODO:
 # Save to CSV
@@ -530,16 +574,24 @@ hsv_dict = {"time": rrxnlist, "h": h, "s": s, "v": v}
 df_rgb = pd.DataFrame(rgb_dict)
 df_hsv = pd.DataFrame(hsv_dict)
 
+# DATA_NAME = folder_data_headers[0]
+# WELL_NAME = folder_data_headers[1]
+# SAVE_FOLDER = folder_data_headers[2]
+
 # Create save file name for RGB and HSV
-rgb_save_name = "rgb_data.csv"
-hsv_save_name = "hsv_data.csv"
+# folder_data = get_folder_data(folder)
+rgb_save_name = f"{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_rgb_data.csv"
+hsv_save_name = f"{folder_data[DATA_NAME]}_{folder_data[WELL_NAME]}_hsv_data.csv"
+
+rgb_full_save_path = os.path.join(folder_data[SAVE_FOLDER], rgb_save_name)
+hsv_full_save_path = os.path.join(folder_data[SAVE_FOLDER], hsv_save_name)
 
 # Save CSV files
-df_rgb.to_csv(rgb_save_name)
-df_hsv.to_csv(hsv_save_name)
+df_rgb.to_csv(rgb_full_save_path)
+df_hsv.to_csv(hsv_full_save_path)
 
-print(f"CSV Saved: {rgb_save_name}")
-print(f"CSV Saved: {hsv_save_name}")
+print(f"CSV Saved: {rgb_full_save_path}")
+print(f"CSV Saved: {hsv_full_save_path}")
 
 # Linear Fit
 # y=s
