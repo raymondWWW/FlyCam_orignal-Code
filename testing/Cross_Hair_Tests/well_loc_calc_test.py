@@ -39,6 +39,10 @@ TODO:
 - [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
 - Clean code up.
 
+Bugs:
+-Snake is not ending correctly for 6 rows, 8 col, 48 well plate
+-All locations may not be labeled correctly.
+
 Sources:
 
 https://www.geeksforgeeks.org/different-ways-to-create-pandas-dataframe/
