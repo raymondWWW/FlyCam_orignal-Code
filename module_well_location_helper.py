@@ -1,5 +1,6 @@
 """
-Cross Hair Test
+Module: Well Location Helper
+aka Cross Hair
 Author: Johnny Duong
 
 Description: Draws cross hairs on image for easier centering.
