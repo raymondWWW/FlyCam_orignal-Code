@@ -34,7 +34,7 @@ Ideas:
 -Save to CSV File
 
 TODO:
-- Create separate function to convert well location matrix to list of dict and save to CSv
+- [DONE] Create separate function to convert well location matrix to list of dict and save to CSv
 - Test row vs column generation, are the locations different?
 - [DONE] Test 4 corners with numbers that reflect build plate (bottom left is closer to (0, 0, 0)
 - Clean code up.
@@ -252,7 +252,6 @@ def get_all_well_locations(num_row, num_col, first_row, first_col):
     #      Append row and col index to data_dict
     #
 
-
     pass
 
 
@@ -321,8 +320,10 @@ def create_location_dataframe(num_row, num_col, all_well_locations):
     # print(df.head(5))
 
     # TODO: Save to unique file name or something better than this.
-    df.to_csv("location_file.csv")
-    pass
+    df.to_csv("all_locations_file.csv")
+
+    # Return dataframe of all locations, contains row and col
+    return df
 
 
 def create_snake_pattern(num_row, num_col, all_well_locations):
@@ -357,7 +358,8 @@ def create_snake_pattern(num_row, num_col, all_well_locations):
     # create_location_dataframe(num_row, num_col, result)
     save_snake_pattern(num_row, num_col, result)
 
-    pass
+    # Return snake patter lists
+    return result
 
 
 def save_snake_pattern(num_row, num_col, snake_well_locations):
@@ -376,7 +378,7 @@ def save_snake_pattern(num_row, num_col, snake_well_locations):
 
     df = pd.DataFrame(result)
     print(df.head(5))
-    df.to_csv("location_file_snake.csv")
+    df.to_csv("location_file_snake_pattern.csv")
 
     pass
 
@@ -385,8 +387,8 @@ def main():
     # Location format: location_dictionary = {"X": 0.00, "Y": 0.00, "Z": 0.00}
 
     # Placeholder data, row 1 start/end, number of rows and columns
-    num_row = 4
-    num_col = 6
+    num_row = 6
+    num_col = 8
 
     X = "X"; Y = "Y"; Z = "Z"
     key_list = [X, Y, Z]
@@ -418,18 +420,22 @@ def main():
     0,114.7, 54.7, 4.0
     0,209.8, 56.5, 4.0
     """
-    
+
+    # Four Corners Test
+    top_left = {"X": 66.3, "Y": 133.5, "Z": 0.0}
+    top_right = {"X": 157.3, "Y": 134.9, "Z": 0.0}
+    bottom_left = {"X": 67.5, "Y": 68.2, "Z": 0.0}
+    bottom_right = {"X": 158.50, "Y": 69.90, "Z": 0.0}
 
     # More like the Build Plate
-    top_left = {"X": 113.9, "Y": 112.0, "Z": 4.0}
-    top_right = {"X": 209.10, "Y": 113.7, "Z": 4.0}
-    bottom_left = {"X": 114.7, "Y": 54.7, "Z": 4.0}
-    bottom_right = {"X": 209.80, "Y": 56.5, "Z": 4.00}
+    # Center location of corner wells
+
+    # top_left = {"X": 113.9, "Y": 112.0, "Z": 4.0}
+    # top_right = {"X": 209.10, "Y": 113.7, "Z": 4.0}
+    # bottom_left = {"X": 114.7, "Y": 54.7, "Z": 4.0}
+    # bottom_right = {"X": 209.80, "Y": 56.5, "Z": 4.00}
 
     get_all_well_locations_4_corners(num_row, num_col, top_left, top_right, bottom_left, bottom_right)
-
-
-
 
     pass
 

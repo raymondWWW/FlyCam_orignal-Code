@@ -18,10 +18,10 @@ TODO:
 -Test with combining layout lists
 -Allow user to put in location
  -Put in X, Y, Z separate boxes?
-
+-get layout function
 
 Changelog:
-8-27-2022:
+8-27-2022: Interface is up, but not working.
 """
 
 # Import Statements
@@ -84,7 +84,6 @@ BUTTON_SNAKE_PATTERN_LOCATION = "Create Well Path"
 
 # All Well Location Events that need to be checked
 WELL_LOCATION_EVENTS = [TOP_LEFT_KEY, BOTTOM_LEFT_KEY, TOP_RIGHT_KEY, BOTTOM_RIGHT_KEY, BUTTON_SNAKE_PATTERN_LOCATION]
-
 
 # ==== USER DEFINED FUNCTIONS ====
 
@@ -258,6 +257,8 @@ def main():
                  ]
 
     # Step 2: 4 Corners
+    # Original
+    """
     corner_left = [[sg.Text("Top-Left:")],
                    [sg.Input("X:1, Y:1, Z:1", size=CORNER_INPUT_SIZE, key=TOP_LEFT_INPUT),
                     sg.Button("Set Loc", key=TOP_LEFT_KEY)],
@@ -266,7 +267,18 @@ def main():
                    [sg.Input("X:1, Y:1, Z:1", size=CORNER_INPUT_SIZE, key=BOTTOM_LEFT_INPUT),
                     sg.Button("Set Loc", key=BOTTOM_LEFT_KEY)]
                    ]
-
+    """
+    
+    top_left_layout = [[sg.Text("X:"), sg.Input("1.00", size=(7,1)), sg.Text("Y:"), sg.Input("1.00", size=(7,1)), sg.Text("Z:"), sg.Input("1.00", size=(7,1)), sg.Button("Get Loc")]]
+    bottom_left_layout = [[sg.Text("X:"), sg.Input("1.00", size=(7,1)), sg.Text("Y:"), sg.Input("1.00", size=(7,1)), sg.Text("Z:"), sg.Input("1.00", size=(7,1)), sg.Button("Get Loc")]]
+    
+    
+    # Frame Version
+    corner_left = [[sg.Frame("Top-Left", top_left_layout)],
+                   [sg.Frame("Bottom-Left", bottom_left_layout)]
+                   ]
+    
+    
     corner_right = [[sg.Text("Top-Right")],
                     [sg.Input("X:1, Y:1, Z:1", size=CORNER_INPUT_SIZE, key=TOP_RIGHT_INPUT),
                      sg.Button("Set Loc", key=TOP_RIGHT_KEY)],
@@ -322,7 +334,13 @@ def main():
     pass
 
 
+def main2():
+    print("main2")
+    pass
+
+
 if __name__ == "__main__":
+    
 
     if USE_DUMMY_DATA == True:
         print("Using dummy data")
