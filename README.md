@@ -1,5 +1,5 @@
 # RoboCam
-(thank you Thomas Zimmerman for the project name)
+
 
 Note: Work-in-Progress.
 
